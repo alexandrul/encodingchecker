@@ -165,6 +165,7 @@
             this.btnAbout.TabIndex = 10;
             this.btnAbout.Text = "&About";
             this.btnAbout.UseVisualStyleBackColor = true;
+            this.btnAbout.Click += new System.EventHandler(this.OnAbout);
             // 
             // lstResults
             // 

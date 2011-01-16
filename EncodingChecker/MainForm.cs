@@ -87,6 +87,12 @@ namespace EncodingChecker
                 txtBaseDirectory.Text = dlgBrowseDirectories.SelectedPath;
         }
 
+        private void OnAbout(object sender, EventArgs e)
+        {
+            using (var aboutForm = new AboutForm())
+                aboutForm.ShowDialog(this);
+        }
+
         #region Loading and saving of settings
         private void LoadSettings()
         {
@@ -284,6 +290,7 @@ namespace EncodingChecker
         #endregion
 
         private const string ValidateCaption = "&Validate";
+
         private const string CancelCaption = "&Cancel";
     }
 }

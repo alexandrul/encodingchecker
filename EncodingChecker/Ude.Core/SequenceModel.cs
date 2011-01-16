@@ -50,23 +50,23 @@ namespace Ude.Core
         protected byte[] precedenceMatrix;
         
         // freqSeqs / totalSeqs
-        protected float typicalPositiveRatio;
+        protected float typicalPositiveRatioField;
         
         public float TypicalPositiveRatio {
-            get { return typicalPositiveRatio; }
+            get { return typicalPositiveRatioField; }
         }
         
         // not used            
-        protected bool keepEnglishLetter;
+        protected bool keepEnglishLetterField;
         
         public bool KeepEnglishLetter {
-            get { return keepEnglishLetter; }
+            get { return keepEnglishLetterField; }
         }
         
-        protected String charsetName;
+        protected String charsetNameField;
 
         public string CharsetName {
-            get { return charsetName; }
+            get { return charsetNameField; }
         }
         
         public SequenceModel(
@@ -78,9 +78,9 @@ namespace Ude.Core
         {
             this.charToOrderMap = charToOrderMap;
             this.precedenceMatrix = precedenceMatrix;
-            this.typicalPositiveRatio = typicalPositiveRatio;
-            this.keepEnglishLetter = keepEnglishLetter;
-            this.charsetName = charsetName;
+            this.typicalPositiveRatioField = typicalPositiveRatio;
+            this.keepEnglishLetterField = keepEnglishLetter;
+            this.charsetNameField = charsetName;
         }
         
         public byte GetOrder(byte b)
