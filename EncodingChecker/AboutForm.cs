@@ -10,12 +10,22 @@ namespace EncodingChecker
             InitializeComponent();
         }
 
-        private static void OnHomepageClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void OnFormLoad(object sender, System.EventArgs e)
         {
-            var psi = new ProcessStartInfo("http://encodingchecker.codeplex.com") {
+            lblHomepage.Links[0].LinkData = "http://encodingchecker.codeplex.com";
+            lblAuthor.Links[0].LinkData = "http://www.jeevanjames.com";
+            lblLicense.Links[0].LinkData = "http://www.mozilla.org/MPL/MPL-1.1.html";
+            lblCreditsUde.Links[0].LinkData = "http://code.google.com/p/ude/";
+            lblCreditsCodePlex.Links[0].LinkData = "http://www.codeplex.com";
+        }
+
+        private static void OnLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            var url = (string)e.Link.LinkData;
+            var startInfo = new ProcessStartInfo(url) {
                 UseShellExecute = true
             };
-            Process.Start(psi);
+            Process.Start(startInfo);
         }
     }
 }

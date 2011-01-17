@@ -44,8 +44,9 @@
             this.lstResults = new System.Windows.Forms.ListView();
             this.dlgBrowseDirectories = new System.Windows.Forms.FolderBrowserDialog();
             this.statusBar = new System.Windows.Forms.StatusStrip();
-            this.progressValidation = new System.Windows.Forms.ToolStripProgressBar();
-            this.statusValidation = new System.Windows.Forms.ToolStripStatusLabel();
+            this.actionProgress = new System.Windows.Forms.ToolStripProgressBar();
+            this.actionStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.btnView = new System.Windows.Forms.Button();
             lblBaseDirectory = new System.Windows.Forms.Label();
             lblFileMasks = new System.Windows.Forms.Label();
             lblValidCharsets = new System.Windows.Forms.Label();
@@ -155,7 +156,7 @@
             this.btnValidate.TabIndex = 8;
             this.btnValidate.Text = "&Validate";
             this.btnValidate.UseVisualStyleBackColor = true;
-            this.btnValidate.Click += new System.EventHandler(this.OnValidate);
+            this.btnValidate.Click += new System.EventHandler(this.OnAction);
             // 
             // btnAbout
             // 
@@ -163,7 +164,7 @@
             this.btnAbout.Name = "btnAbout";
             this.btnAbout.Size = new System.Drawing.Size(75, 23);
             this.btnAbout.TabIndex = 10;
-            this.btnAbout.Text = "&About";
+            this.btnAbout.Text = "&About...";
             this.btnAbout.UseVisualStyleBackColor = true;
             this.btnAbout.Click += new System.EventHandler(this.OnAbout);
             // 
@@ -176,6 +177,8 @@
             colEncoding,
             colFileName,
             colDirectory});
+            this.lstResults.FullRowSelect = true;
+            this.lstResults.GridLines = true;
             this.lstResults.Location = new System.Drawing.Point(10, 187);
             this.lstResults.Name = "lstResults";
             this.lstResults.Size = new System.Drawing.Size(680, 300);
@@ -190,30 +193,41 @@
             // statusBar
             // 
             this.statusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.progressValidation,
-            this.statusValidation});
-            this.statusBar.Location = new System.Drawing.Point(0, 499);
+            this.actionProgress,
+            this.actionStatus});
+            this.statusBar.Location = new System.Drawing.Point(0, 497);
             this.statusBar.Name = "statusBar";
             this.statusBar.Size = new System.Drawing.Size(700, 22);
             this.statusBar.TabIndex = 12;
             this.statusBar.Visible = false;
             // 
-            // progressValidation
+            // actionProgress
             // 
-            this.progressValidation.Name = "progressValidation";
-            this.progressValidation.Size = new System.Drawing.Size(100, 16);
-            this.progressValidation.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.actionProgress.Name = "actionProgress";
+            this.actionProgress.Size = new System.Drawing.Size(100, 16);
+            this.actionProgress.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             // 
-            // statusValidation
+            // actionStatus
             // 
-            this.statusValidation.Name = "statusValidation";
-            this.statusValidation.Size = new System.Drawing.Size(0, 17);
+            this.actionStatus.Name = "actionStatus";
+            this.actionStatus.Size = new System.Drawing.Size(0, 17);
+            // 
+            // btnView
+            // 
+            this.btnView.Location = new System.Drawing.Point(430, 97);
+            this.btnView.Name = "btnView";
+            this.btnView.Size = new System.Drawing.Size(75, 23);
+            this.btnView.TabIndex = 13;
+            this.btnView.Text = "Vie&w";
+            this.btnView.UseVisualStyleBackColor = true;
+            this.btnView.Click += new System.EventHandler(this.OnAction);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(700, 519);
+            this.Controls.Add(this.btnView);
             this.Controls.Add(this.statusBar);
             this.Controls.Add(this.lstResults);
             this.Controls.Add(this.btnAbout);
@@ -250,9 +264,10 @@
         private System.Windows.Forms.Button btnAbout;
         private System.Windows.Forms.ListView lstResults;
         private System.Windows.Forms.FolderBrowserDialog dlgBrowseDirectories;
-        private System.Windows.Forms.ToolStripProgressBar progressValidation;
-        private System.Windows.Forms.ToolStripStatusLabel statusValidation;
+        private System.Windows.Forms.ToolStripProgressBar actionProgress;
+        private System.Windows.Forms.ToolStripStatusLabel actionStatus;
         private System.Windows.Forms.StatusStrip statusBar;
+        private System.Windows.Forms.Button btnView;
     }
 }
 

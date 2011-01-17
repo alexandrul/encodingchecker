@@ -15,6 +15,7 @@ namespace EncodingChecker
     {
         private sealed class WorkerArgs
         {
+            internal CurrentAction Action;
             internal string BaseDirectory;
             internal bool IncludeSubdirectories;
             internal string FileMasks;
@@ -28,31 +29,34 @@ namespace EncodingChecker
             internal string Charset;
         }
 
-        private enum ValidateButtonAction
+        private enum CurrentAction
         {
+            View,
             Validate,
             Cancel,
         }
 
-        private readonly BackgroundWorker _validationWorker;
+        private readonly BackgroundWorker _actionWorker;
+        private CurrentAction _currentAction = CurrentAction.Cancel; //Indicates no current action
         private Settings _settings;
 
         public MainForm()
         {
             InitializeComponent();
 
-            _validationWorker = new BackgroundWorker {
+            _actionWorker = new BackgroundWorker {
                 WorkerReportsProgress = true,
                 WorkerSupportsCancellation = true
             };
-            _validationWorker.DoWork += ValidationWorkerDoWork;
-            _validationWorker.ProgressChanged += ValidationWorkerProgressChanged;
-            _validationWorker.RunWorkerCompleted += ValidationWorkerCompleted;
+            _actionWorker.DoWork += ActionWorkerDoWork;
+            _actionWorker.ProgressChanged += ActionWorkerProgressChanged;
+            _actionWorker.RunWorkerCompleted += ActionWorkerCompleted;
         }
 
         private void OnFormLoad(object sender, EventArgs e)
         {
-            //Populate the valid charsets list
+            //Populate the valid charsets list by using reflection to read the constants in the
+            //Ude.Charsets class.
             FieldInfo[] charsetConstants =
                 typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
             foreach (FieldInfo charsetConstant in charsetConstants)
@@ -63,12 +67,13 @@ namespace EncodingChecker
                 lstValidCharsets.Items.Add(value);
             }
 
-            //Set the initial action for the validate button
-            btnValidate.Tag = ValidateButtonAction.Validate;
+            //Set the initial action for the action buttons in their Tag properties
+            btnView.Tag = CurrentAction.View;
+            btnValidate.Tag = CurrentAction.Validate;
 
             LoadSettings();
 
-            //Size the result list columns
+            //Size the result list columns based on the initial size of the window
             lstResults.Columns[0].AutoResize(ColumnHeaderAutoResizeStyle.HeaderSize);
             int remainingWidth = lstResults.Width - lstResults.Columns[0].Width;
             lstResults.Columns[1].Width = (30 * remainingWidth) / 100;
@@ -140,34 +145,46 @@ namespace EncodingChecker
         private const string SettingsFileName = "Settings.bin";
         #endregion
 
-        #region Validate button handling
-        private void OnValidate(object sender, EventArgs e)
+        #region Action button handling
+        private void OnAction(object sender, EventArgs e)
         {
-            var validateAction = (ValidateButtonAction)btnValidate.Tag;
-            if (validateAction == ValidateButtonAction.Validate)
-                StartValidation();
+            var actionButton = (Button)sender;
+            var action = (CurrentAction)actionButton.Tag;
+            if (action == CurrentAction.Cancel)
+                CancelAction(action);
             else
-                CancelValidation();
+                StartAction(action);
         }
 
-        private void StartValidation()
+        private void StartAction(CurrentAction action)
         {
             string directory = txtBaseDirectory.Text;
             if (string.IsNullOrEmpty(directory))
             {
-                MessageBox.Show("Please specify a directory to check");
+                ShowWarning("Please specify a directory to check");
                 return;
             }
             if (!Directory.Exists(directory))
             {
-                MessageBox.Show(string.Format("The directory you specified '{0}' does not exist", directory));
+                ShowWarning("The directory you specified '{0}' does not exist", directory);
+                return;
+            }
+            if (action == CurrentAction.Validate && lstValidCharsets.CheckedItems.Count == 0)
+            {
+                ShowWarning("Select one or more valid character sets to proceed with validation");
                 return;
             }
 
-            btnValidate.Text = CancelCaption;
-            btnValidate.Tag = ValidateButtonAction.Cancel;
-            progressValidation.Value = 0;
-            statusValidation.Text = string.Empty;
+            _currentAction = action;
+
+            Button actionButton = action == CurrentAction.View ? btnView : btnValidate;
+            Button otherActionButton = action == CurrentAction.View ? btnValidate : btnView;
+
+            actionButton.Text = CancelCaption;
+            actionButton.Tag = CurrentAction.Cancel;
+            otherActionButton.Enabled = false;
+            actionProgress.Value = 0;
+            actionStatus.Text = string.Empty;
             statusBar.Visible = true;
             lstResults.Items.Clear();
 
@@ -175,8 +192,9 @@ namespace EncodingChecker
             foreach (string validCharset in lstValidCharsets.CheckedItems)
                 validCharsets.Add(validCharset);
 
-            _validationWorker.RunWorkerAsync(new WorkerArgs
+            _actionWorker.RunWorkerAsync(new WorkerArgs
             {
+                Action = action,
                 BaseDirectory = directory,
                 IncludeSubdirectories = chkIncludeSubdirectories.Checked,
                 FileMasks = txtFileMasks.Text,
@@ -184,16 +202,19 @@ namespace EncodingChecker
             });
         }
 
-        private void CancelValidation()
+        private void CancelAction(CurrentAction action)
         {
-            btnValidate.Enabled = false;
-            if (_validationWorker.IsBusy)
-                _validationWorker.CancelAsync();
+            if (_actionWorker.IsBusy)
+            {
+                Button actionButton = action == CurrentAction.View ? btnView : btnValidate;
+                actionButton.Enabled = false;
+                _actionWorker.CancelAsync();
+            }
         }
         #endregion
 
         #region Background worker event handlers and helper methods
-        private static void ValidationWorkerDoWork(object sender, DoWorkEventArgs e)
+        private static void ActionWorkerDoWork(object sender, DoWorkEventArgs e)
         {
             var worker = (BackgroundWorker)sender;
             var args = (WorkerArgs)e.Argument;
@@ -221,16 +242,19 @@ namespace EncodingChecker
                     detector.Feed(fs);
                     detector.DataEnd();
                 }
-                if (detector.Charset == null)
-                    continue;
-                if (args.ValidCharsets.Contains(detector.Charset))
-                    continue;
+                if (args.Action == CurrentAction.Validate)
+                {
+                    if (detector.Charset == null)
+                        continue;
+                    if (args.ValidCharsets.Contains(detector.Charset))
+                        continue;
+                }
 
                 string directoryName = Path.GetDirectoryName(path);
 
                 int percentageCompleted = (i * 100) / allFiles.Length;
                 worker.ReportProgress(percentageCompleted, new WorkerProgress {
-                    Charset = detector.Charset,
+                    Charset = detector.Charset ?? "(Unknown)",
                     FileName = fileName,
                     DirectoryName = directoryName
                 });
@@ -265,32 +289,41 @@ namespace EncodingChecker
             return false;
         }
 
-        private void ValidationWorkerProgressChanged(object sender, ProgressChangedEventArgs e)
+        private void ActionWorkerProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             var progress = (WorkerProgress)e.UserState;
 
             var resultItem = new ListViewItem(new[] { progress.Charset, progress.FileName, progress.DirectoryName }, -1);
             lstResults.Items.Add(resultItem);
 
-            progressValidation.Value = e.ProgressPercentage;
-            statusValidation.Text = progress.FileName;
+            actionProgress.Value = e.ProgressPercentage;
+            actionStatus.Text = progress.FileName;
         }
 
-        private void ValidationWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void ActionWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             foreach (ColumnHeader columnHeader in lstResults.Columns)
                 columnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
 
-            statusBar.Visible = false;
-            btnValidate.Text = ValidateCaption;
-            btnValidate.Tag = ValidateButtonAction.Validate;
+            Button actionButton = _currentAction == CurrentAction.View ? btnView : btnValidate;
+            Button otherActionButton = _currentAction == CurrentAction.View ? btnValidate : btnView;
+
+            actionButton.Text = _currentAction == CurrentAction.View ? ViewCaption : ValidateCaption;
+            actionButton.Tag = _currentAction;
+            otherActionButton.Enabled = true;
             if (e.Cancelled)
-                btnValidate.Enabled = true;
+                actionButton.Enabled = true;
+            statusBar.Visible = false;
         }
         #endregion
 
-        private const string ValidateCaption = "&Validate";
+        private void ShowWarning(string message, params object[] args)
+        {
+            MessageBox.Show(this, string.Format(message, args), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
 
+        private const string ViewCaption = "Vie&w";
+        private const string ValidateCaption = "&Validate";
         private const string CancelCaption = "&Cancel";
     }
 }

@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EncodingChecker", "EncodingChecker\EncodingChecker.csproj", "{CE79E3D4-788B-4D55-BCF1-0EDCA2F74C4D}"
 EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{C3C5D7F3-B508-4742-86BF-A7AD301E49BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -13,6 +15,8 @@ Global
 		{CE79E3D4-788B-4D55-BCF1-0EDCA2F74C4D}.Debug|x86.Build.0 = Debug|x86
 		{CE79E3D4-788B-4D55-BCF1-0EDCA2F74C4D}.Release|x86.ActiveCfg = Release|x86
 		{CE79E3D4-788B-4D55-BCF1-0EDCA2F74C4D}.Release|x86.Build.0 = Release|x86
+		{C3C5D7F3-B508-4742-86BF-A7AD301E49BE}.Debug|x86.ActiveCfg = Debug
+		{C3C5D7F3-B508-4742-86BF-A7AD301E49BE}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
