@@ -43,6 +43,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -286,7 +294,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_A7164587F0D7436DB55F489453BFD024"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_11EA1E07B0614FF6951CC2F315CFDA14"
             {
             "Name" = "8:File Encoding Checker"
             "Arguments" = "8:"
@@ -294,9 +302,9 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_87EA5C1C85ED422EAAC430E10ED27722"
+            "Target" = "8:_CFCBA1F735E84BF9BDC8EB5DFB992003"
             "Folder" = "8:_87EA5C1C85ED422EAAC430E10ED27722"
-            "WorkingFolder" = "8:_87EA5C1C85ED422EAAC430E10ED27722"
+            "WorkingFolder" = "8:_707BEA067B40429BBE9ECE05B6B6CC80"
             "Icon" = "8:"
             "Feature" = "8:"
             }
@@ -701,7 +709,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_CFCBA1F735E84BF9BDC8EB5DFB992003"
             {
-            "SourcePath" = "8:..\\EncodingChecker\\obj\\x86\\Release\\EncodingChecker.exe"
+            "SourcePath" = "8:..\\EncodingChecker\\obj\\x86\\Debug\\EncodingChecker.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_707BEA067B40429BBE9ECE05B6B6CC80"

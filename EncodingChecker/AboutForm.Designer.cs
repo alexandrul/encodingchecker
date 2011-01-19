@@ -31,15 +31,18 @@
             System.Windows.Forms.Label lblProductName;
             System.Windows.Forms.Label lblVersion;
             System.Windows.Forms.Label lblCredits;
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AboutForm));
             this.btnClose = new System.Windows.Forms.Button();
             this.lblHomepage = new System.Windows.Forms.LinkLabel();
             this.lblAuthor = new System.Windows.Forms.LinkLabel();
             this.lblLicense = new System.Windows.Forms.LinkLabel();
             this.lblCreditsUde = new System.Windows.Forms.LinkLabel();
             this.lblCreditsCodePlex = new System.Windows.Forms.LinkLabel();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             lblProductName = new System.Windows.Forms.Label();
             lblVersion = new System.Windows.Forms.Label();
             lblCredits = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // lblProductName
@@ -52,11 +55,32 @@
             lblProductName.TabIndex = 0;
             lblProductName.Text = "File Encoding Checker";
             // 
+            // lblVersion
+            // 
+            lblVersion.AutoSize = true;
+            lblVersion.Location = new System.Drawing.Point(15, 48);
+            lblVersion.Name = "lblVersion";
+            lblVersion.Size = new System.Drawing.Size(60, 18);
+            lblVersion.TabIndex = 1;
+            lblVersion.Text = "Version 1.0";
+            lblVersion.UseCompatibleTextRendering = true;
+            // 
+            // lblCredits
+            // 
+            lblCredits.AutoSize = true;
+            lblCredits.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            lblCredits.Location = new System.Drawing.Point(15, 130);
+            lblCredits.Name = "lblCredits";
+            lblCredits.Size = new System.Drawing.Size(49, 18);
+            lblCredits.TabIndex = 5;
+            lblCredits.Text = "Credits:";
+            lblCredits.UseCompatibleTextRendering = true;
+            // 
             // btnClose
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnClose.Location = new System.Drawing.Point(255, 224);
+            this.btnClose.Location = new System.Drawing.Point(501, 224);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(75, 23);
             this.btnClose.TabIndex = 8;
@@ -73,17 +97,7 @@
             this.lblHomepage.TabStop = true;
             this.lblHomepage.Text = "Homepage";
             this.lblHomepage.UseCompatibleTextRendering = true;
-            this.lblHomepage.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(OnLinkClicked);
-            // 
-            // lblVersion
-            // 
-            lblVersion.AutoSize = true;
-            lblVersion.Location = new System.Drawing.Point(15, 48);
-            lblVersion.Name = "lblVersion";
-            lblVersion.Size = new System.Drawing.Size(60, 18);
-            lblVersion.TabIndex = 1;
-            lblVersion.Text = "Version 1.0";
-            lblVersion.UseCompatibleTextRendering = true;
+            this.lblHomepage.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.OnLinkClicked);
             // 
             // lblAuthor
             // 
@@ -96,7 +110,7 @@
             this.lblAuthor.TabStop = true;
             this.lblAuthor.Text = "Created by Jeevan James";
             this.lblAuthor.UseCompatibleTextRendering = true;
-            this.lblAuthor.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(OnLinkClicked);
+            this.lblAuthor.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.OnLinkClicked);
             // 
             // lblLicense
             // 
@@ -109,18 +123,7 @@
             this.lblLicense.TabStop = true;
             this.lblLicense.Text = "Licensed under the Mozilla Public License 1.1";
             this.lblLicense.UseCompatibleTextRendering = true;
-            this.lblLicense.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(OnLinkClicked);
-            // 
-            // lblCredits
-            // 
-            lblCredits.AutoSize = true;
-            lblCredits.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            lblCredits.Location = new System.Drawing.Point(15, 130);
-            lblCredits.Name = "lblCredits";
-            lblCredits.Size = new System.Drawing.Size(49, 18);
-            lblCredits.TabIndex = 5;
-            lblCredits.Text = "Credits:";
-            lblCredits.UseCompatibleTextRendering = true;
+            this.lblLicense.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.OnLinkClicked);
             // 
             // lblCreditsUde
             // 
@@ -133,7 +136,7 @@
             this.lblCreditsUde.TabStop = true;
             this.lblCreditsUde.Text = "ude, a C# port of Mozilla Universal Charset Detector";
             this.lblCreditsUde.UseCompatibleTextRendering = true;
-            this.lblCreditsUde.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(OnLinkClicked);
+            this.lblCreditsUde.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.OnLinkClicked);
             // 
             // lblCreditsCodePlex
             // 
@@ -146,7 +149,17 @@
             this.lblCreditsCodePlex.TabStop = true;
             this.lblCreditsCodePlex.Text = "CodePlex, for project hosting";
             this.lblCreditsCodePlex.UseCompatibleTextRendering = true;
-            this.lblCreditsCodePlex.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(OnLinkClicked);
+            this.lblCreditsCodePlex.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.OnLinkClicked);
+            // 
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
+            this.pictureBox1.Location = new System.Drawing.Point(323, 1);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(256, 256);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.pictureBox1.TabIndex = 9;
+            this.pictureBox1.TabStop = false;
             // 
             // AboutForm
             // 
@@ -154,7 +167,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnClose;
-            this.ClientSize = new System.Drawing.Size(340, 257);
+            this.ClientSize = new System.Drawing.Size(586, 257);
             this.Controls.Add(this.lblCreditsCodePlex);
             this.Controls.Add(this.lblCreditsUde);
             this.Controls.Add(lblCredits);
@@ -164,6 +177,7 @@
             this.Controls.Add(this.lblHomepage);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(lblProductName);
+            this.Controls.Add(this.pictureBox1);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
@@ -175,6 +189,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "About";
             this.Load += new System.EventHandler(this.OnFormLoad);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -188,5 +203,6 @@
         private System.Windows.Forms.LinkLabel lblLicense;
         private System.Windows.Forms.LinkLabel lblCreditsUde;
         private System.Windows.Forms.LinkLabel lblCreditsCodePlex;
+        private System.Windows.Forms.PictureBox pictureBox1;
     }
 }

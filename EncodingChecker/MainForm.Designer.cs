@@ -34,6 +34,7 @@
             System.Windows.Forms.ColumnHeader colEncoding;
             System.Windows.Forms.ColumnHeader colFileName;
             System.Windows.Forms.ColumnHeader colDirectory;
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.txtBaseDirectory = new System.Windows.Forms.TextBox();
             this.btnBrowseDirectories = new System.Windows.Forms.Button();
             this.chkIncludeSubdirectories = new System.Windows.Forms.CheckBox();
@@ -241,6 +242,7 @@
             this.Controls.Add(this.txtBaseDirectory);
             this.Controls.Add(lblBaseDirectory);
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimumSize = new System.Drawing.Size(525, 350);
             this.Name = "MainForm";
             this.Text = "File Encoding Checker";

@@ -19,7 +19,7 @@ namespace EncodingChecker
             lblCreditsCodePlex.Links[0].LinkData = "http://www.codeplex.com";
         }
 
-        private static void OnLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void OnLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             var url = (string)e.Link.LinkData;
             var startInfo = new ProcessStartInfo(url) {
