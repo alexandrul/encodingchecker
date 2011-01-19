@@ -44,10 +44,9 @@ namespace EncodingChecker
         {
             InitializeComponent();
 
-            _actionWorker = new BackgroundWorker {
-                WorkerReportsProgress = true,
-                WorkerSupportsCancellation = true
-            };
+            _actionWorker = new BackgroundWorker();
+            _actionWorker.WorkerReportsProgress = true;
+            _actionWorker.WorkerSupportsCancellation = true;
             _actionWorker.DoWork += ActionWorkerDoWork;
             _actionWorker.ProgressChanged += ActionWorkerProgressChanged;
             _actionWorker.RunWorkerCompleted += ActionWorkerCompleted;
@@ -57,8 +56,7 @@ namespace EncodingChecker
         {
             //Populate the valid charsets list by using reflection to read the constants in the
             //Ude.Charsets class.
-            FieldInfo[] charsetConstants =
-                typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
+            FieldInfo[] charsetConstants = typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
             foreach (FieldInfo charsetConstant in charsetConstants)
             {
                 if (charsetConstant.FieldType != typeof(string))
@@ -94,7 +92,7 @@ namespace EncodingChecker
 
         private void OnAbout(object sender, EventArgs e)
         {
-            using (var aboutForm = new AboutForm())
+            using (AboutForm aboutForm = new AboutForm())
                 aboutForm.ShowDialog(this);
         }
 
@@ -104,9 +102,9 @@ namespace EncodingChecker
             string settingsFileName = Path.Combine(Environment.CurrentDirectory, SettingsFileName);
             if (!File.Exists(settingsFileName))
                 return;
-            using (var settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                var formatter = new BinaryFormatter();
+                BinaryFormatter formatter = new BinaryFormatter();
                 object settingsInstance = formatter.Deserialize(settingsFile);
                 _settings = (Settings)settingsInstance;
             }
@@ -125,18 +123,16 @@ namespace EncodingChecker
             _settings.BaseDirectory = txtBaseDirectory.Text;
             _settings.IncludeSubdirectories = chkIncludeSubdirectories.Checked;
             _settings.FileMasks = txtFileMasks.Text;
-            _settings.WindowPosition = new WindowPosition {
-                Left = Left,
-                Top = Top,
-                Width = Width,
-                Height = Height
-            };
+            _settings.WindowPosition = new WindowPosition();
+            _settings.WindowPosition.Left = Left;
+            _settings.WindowPosition.Top = Top;
+            _settings.WindowPosition.Width = Width;
+            _settings.WindowPosition.Height = Height;
 
             string settingsFileName = Path.Combine(Environment.CurrentDirectory, SettingsFileName);
-            using (
-                var settingsFile = new FileStream(settingsFileName, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                var formatter = new BinaryFormatter();
+                BinaryFormatter formatter = new BinaryFormatter();
                 formatter.Serialize(settingsFile, _settings);
                 settingsFile.Flush();
             }
@@ -148,8 +144,8 @@ namespace EncodingChecker
         #region Action button handling
         private void OnAction(object sender, EventArgs e)
         {
-            var actionButton = (Button)sender;
-            var action = (CurrentAction)actionButton.Tag;
+            Button actionButton = (Button)sender;
+            CurrentAction action = (CurrentAction)actionButton.Tag;
             if (action == CurrentAction.Cancel)
                 CancelAction(action);
             else
@@ -188,18 +184,17 @@ namespace EncodingChecker
             statusBar.Visible = true;
             lstResults.Items.Clear();
 
-            var validCharsets = new List<string>(lstValidCharsets.CheckedItems.Count);
+            List<string> validCharsets = new List<string>(lstValidCharsets.CheckedItems.Count);
             foreach (string validCharset in lstValidCharsets.CheckedItems)
                 validCharsets.Add(validCharset);
 
-            _actionWorker.RunWorkerAsync(new WorkerArgs
-            {
-                Action = action,
-                BaseDirectory = directory,
-                IncludeSubdirectories = chkIncludeSubdirectories.Checked,
-                FileMasks = txtFileMasks.Text,
-                ValidCharsets = validCharsets
-            });
+            WorkerArgs args = new WorkerArgs();
+            args.Action = action;
+            args.BaseDirectory = directory;
+            args.IncludeSubdirectories = chkIncludeSubdirectories.Checked;
+            args.FileMasks = txtFileMasks.Text;
+            args.ValidCharsets = validCharsets;
+            _actionWorker.RunWorkerAsync(args);
         }
 
         private void CancelAction(CurrentAction action)
@@ -216,8 +211,8 @@ namespace EncodingChecker
         #region Background worker event handlers and helper methods
         private static void ActionWorkerDoWork(object sender, DoWorkEventArgs e)
         {
-            var worker = (BackgroundWorker)sender;
-            var args = (WorkerArgs)e.Argument;
+            BackgroundWorker worker = (BackgroundWorker)sender;
+            WorkerArgs args = (WorkerArgs)e.Argument;
 
             string[] allFiles = Directory.GetFiles(args.BaseDirectory, "*.*",
                 args.IncludeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
@@ -236,8 +231,8 @@ namespace EncodingChecker
                 if (!SatisfiesMaskPatterns(fileName, maskPatterns))
                     continue;
 
-                var detector = new CharsetDetector();
-                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read))
+                CharsetDetector detector = new CharsetDetector();
+                using (FileStream fs = new FileStream(path, FileMode.Open, FileAccess.Read))
                 {
                     detector.Feed(fs);
                     detector.DataEnd();
@@ -253,27 +248,25 @@ namespace EncodingChecker
                 string directoryName = Path.GetDirectoryName(path);
 
                 int percentageCompleted = (i * 100) / allFiles.Length;
-                worker.ReportProgress(percentageCompleted, new WorkerProgress {
-                    Charset = detector.Charset ?? "(Unknown)",
-                    FileName = fileName,
-                    DirectoryName = directoryName
-                });
+                WorkerProgress progress = new WorkerProgress();
+                progress.Charset = detector.Charset ?? "(Unknown)";
+                progress.FileName = fileName;
+                progress.DirectoryName = directoryName;
+                worker.ReportProgress(percentageCompleted, progress);
             }
         }
 
         private static IEnumerable<Regex> GenerateMaskPatterns(string fileMaskString)
         {
-            string[] fileMasks = fileMaskString.Split(new[] { Environment.NewLine },
-                StringSplitOptions.RemoveEmptyEntries);
+            string[] fileMasks = fileMaskString.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
 
-            var maskPatterns = new List<Regex>(fileMasks.Length);
+            List<Regex> maskPatterns = new List<Regex>(fileMasks.Length);
             foreach (string fileMask in fileMasks)
             {
                 if (string.IsNullOrEmpty(fileMask))
                     continue;
-                var maskPattern =
-                    new Regex("^" + fileMask.Replace(".", "[.]").Replace("*", ".*").Replace("?", ".") + "$",
-                        RegexOptions.IgnoreCase);
+                Regex maskPattern = new Regex("^" + fileMask.Replace(".", "[.]").Replace("*", ".*").Replace("?", ".") + "$",
+                    RegexOptions.IgnoreCase);
                 maskPatterns.Add(maskPattern);
             }
             return maskPatterns;
@@ -291,9 +284,9 @@ namespace EncodingChecker
 
         private void ActionWorkerProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            var progress = (WorkerProgress)e.UserState;
+            WorkerProgress progress = (WorkerProgress)e.UserState;
 
-            var resultItem = new ListViewItem(new[] { progress.Charset, progress.FileName, progress.DirectoryName }, -1);
+            ListViewItem resultItem = new ListViewItem(new string[] { progress.Charset, progress.FileName, progress.DirectoryName }, -1);
             lstResults.Items.Add(resultItem);
 
             actionProgress.Value = e.ProgressPercentage;

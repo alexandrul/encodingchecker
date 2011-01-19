@@ -21,10 +21,9 @@ namespace EncodingChecker
 
         private void OnLinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var url = (string)e.Link.LinkData;
-            var startInfo = new ProcessStartInfo(url) {
-                UseShellExecute = true
-            };
+            string url = (string)e.Link.LinkData;
+            ProcessStartInfo startInfo = new ProcessStartInfo(url);
+            startInfo.UseShellExecute = true;
             Process.Start(startInfo);
         }
     }
