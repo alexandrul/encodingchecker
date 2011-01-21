@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Deployment.Application;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -99,7 +100,7 @@ namespace EncodingChecker
         #region Loading and saving of settings
         private void LoadSettings()
         {
-            string settingsFileName = Path.Combine(Environment.CurrentDirectory, SettingsFileName);
+            string settingsFileName = GetSettingsFileName();
             if (!File.Exists(settingsFileName))
                 return;
             using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -129,7 +130,7 @@ namespace EncodingChecker
             _settings.WindowPosition.Width = Width;
             _settings.WindowPosition.Height = Height;
 
-            string settingsFileName = Path.Combine(Environment.CurrentDirectory, SettingsFileName);
+            string settingsFileName = GetSettingsFileName();
             using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Create, FileAccess.Write, FileShare.None))
             {
                 BinaryFormatter formatter = new BinaryFormatter();
@@ -138,7 +139,17 @@ namespace EncodingChecker
             }
         }
 
-        private const string SettingsFileName = "Settings.bin";
+        private static string GetSettingsFileName()
+        {
+            string dataDirectory = ApplicationDeployment.IsNetworkDeployed ? ApplicationDeployment.CurrentDeployment.DataDirectory : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (string.IsNullOrEmpty(dataDirectory) || !Directory.Exists(dataDirectory))
+                dataDirectory = Environment.CurrentDirectory;
+            dataDirectory = Path.Combine(dataDirectory, "EncodingChecker");
+            if (!Directory.Exists(dataDirectory))
+                Directory.CreateDirectory(dataDirectory);
+            return Path.Combine(dataDirectory, "Settings.bin");
+        }
+
         #endregion
 
         #region Action button handling
@@ -173,16 +184,7 @@ namespace EncodingChecker
 
             _currentAction = action;
 
-            Button actionButton = action == CurrentAction.View ? btnView : btnValidate;
-            Button otherActionButton = action == CurrentAction.View ? btnValidate : btnView;
-
-            actionButton.Text = CancelCaption;
-            actionButton.Tag = CurrentAction.Cancel;
-            otherActionButton.Enabled = false;
-            actionProgress.Value = 0;
-            actionStatus.Text = string.Empty;
-            statusBar.Visible = true;
-            lstResults.Items.Clear();
+            UpdateUIOnActionStart(action);
 
             List<string> validCharsets = new List<string>(lstValidCharsets.CheckedItems.Count);
             foreach (string validCharset in lstValidCharsets.CheckedItems)
@@ -297,18 +299,36 @@ namespace EncodingChecker
         {
             foreach (ColumnHeader columnHeader in lstResults.Columns)
                 columnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+            UpdateUIOnActionDone(e.Cancelled);
+        }
+        #endregion
 
+        private void UpdateUIOnActionStart(CurrentAction action)
+        {
+            Button actionButton = action == CurrentAction.View ? btnView : btnValidate;
+            Button otherActionButton = action == CurrentAction.View ? btnValidate : btnView;
+
+            actionButton.Text = CancelCaption;
+            actionButton.Tag = CurrentAction.Cancel;
+            otherActionButton.Enabled = false;
+            actionProgress.Value = 0;
+            actionStatus.Text = string.Empty;
+            statusBar.Visible = true;
+            lstResults.Items.Clear();
+        }
+
+        private void UpdateUIOnActionDone(bool cancelled)
+        {
             Button actionButton = _currentAction == CurrentAction.View ? btnView : btnValidate;
             Button otherActionButton = _currentAction == CurrentAction.View ? btnValidate : btnView;
 
             actionButton.Text = _currentAction == CurrentAction.View ? ViewCaption : ValidateCaption;
             actionButton.Tag = _currentAction;
             otherActionButton.Enabled = true;
-            if (e.Cancelled)
+            if (cancelled)
                 actionButton.Enabled = true;
             statusBar.Visible = false;
         }
-        #endregion
 
         private void ShowWarning(string message, params object[] args)
         {
