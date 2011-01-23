@@ -354,4 +354,33 @@ namespace EncodingChecker
         private const string ValidateCaption = "&Validate";
         private const string CancelCaption = "&Cancel";
     }
+
+    public sealed class Result
+    {
+        private readonly string _charset;
+        private readonly string _fileName;
+        private readonly string _directory;
+
+        public Result(string charset, string fileName, string directory)
+        {
+            _charset = charset;
+            _fileName = fileName;
+            _directory = directory;
+        }
+
+        public string Charset
+        {
+            get { return _charset; }
+        }
+
+        public string FileName
+        {
+            get { return _fileName; }
+        }
+
+        public string Directory
+        {
+            get { return _directory; }
+        }
+    }
 }
