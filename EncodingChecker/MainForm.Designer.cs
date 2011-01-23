@@ -29,12 +29,12 @@
         private void InitializeComponent()
         {
             System.Windows.Forms.Label lblBaseDirectory;
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             System.Windows.Forms.Label lblFileMasks;
             System.Windows.Forms.Label lblValidCharsets;
             System.Windows.Forms.ColumnHeader colEncoding;
             System.Windows.Forms.ColumnHeader colFileName;
             System.Windows.Forms.ColumnHeader colDirectory;
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.txtBaseDirectory = new System.Windows.Forms.TextBox();
             this.btnBrowseDirectories = new System.Windows.Forms.Button();
             this.chkIncludeSubdirectories = new System.Windows.Forms.CheckBox();
@@ -59,175 +59,123 @@
             // 
             // lblBaseDirectory
             // 
-            lblBaseDirectory.AutoSize = true;
-            lblBaseDirectory.Location = new System.Drawing.Point(10, 10);
+            resources.ApplyResources(lblBaseDirectory, "lblBaseDirectory");
             lblBaseDirectory.Name = "lblBaseDirectory";
-            lblBaseDirectory.Size = new System.Drawing.Size(98, 13);
-            lblBaseDirectory.TabIndex = 0;
-            lblBaseDirectory.Text = "&Directory to check:";
             // 
             // lblFileMasks
             // 
-            lblFileMasks.AutoSize = true;
-            lblFileMasks.Location = new System.Drawing.Point(10, 59);
+            resources.ApplyResources(lblFileMasks, "lblFileMasks");
             lblFileMasks.Name = "lblFileMasks";
-            lblFileMasks.Size = new System.Drawing.Size(149, 13);
-            lblFileMasks.TabIndex = 4;
-            lblFileMasks.Text = "Enter file &masks (one per line)";
             // 
             // lblValidCharsets
             // 
-            lblValidCharsets.AutoSize = true;
-            lblValidCharsets.Location = new System.Drawing.Point(220, 59);
+            resources.ApplyResources(lblValidCharsets, "lblValidCharsets");
             lblValidCharsets.Name = "lblValidCharsets";
-            lblValidCharsets.Size = new System.Drawing.Size(133, 13);
-            lblValidCharsets.TabIndex = 6;
-            lblValidCharsets.Text = "Select valid &character sets";
             // 
             // colEncoding
             // 
-            colEncoding.Text = "Encoding";
-            colEncoding.Width = 25;
+            resources.ApplyResources(colEncoding, "colEncoding");
             // 
             // colFileName
             // 
-            colFileName.Text = "File name";
-            colFileName.Width = 25;
+            resources.ApplyResources(colFileName, "colFileName");
             // 
             // colDirectory
             // 
-            colDirectory.Text = "Directory";
-            colDirectory.Width = 25;
+            resources.ApplyResources(colDirectory, "colDirectory");
             // 
             // txtBaseDirectory
             // 
-            this.txtBaseDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtBaseDirectory.Location = new System.Drawing.Point(10, 28);
+            resources.ApplyResources(this.txtBaseDirectory, "txtBaseDirectory");
             this.txtBaseDirectory.Name = "txtBaseDirectory";
-            this.txtBaseDirectory.Size = new System.Drawing.Size(480, 21);
-            this.txtBaseDirectory.TabIndex = 1;
             // 
             // btnBrowseDirectories
             // 
-            this.btnBrowseDirectories.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnBrowseDirectories.Location = new System.Drawing.Point(500, 28);
+            resources.ApplyResources(this.btnBrowseDirectories, "btnBrowseDirectories");
             this.btnBrowseDirectories.Name = "btnBrowseDirectories";
-            this.btnBrowseDirectories.Size = new System.Drawing.Size(30, 21);
-            this.btnBrowseDirectories.TabIndex = 2;
-            this.btnBrowseDirectories.Text = "....";
             this.btnBrowseDirectories.UseVisualStyleBackColor = true;
             this.btnBrowseDirectories.Click += new System.EventHandler(this.OnBrowseDirectories);
             // 
             // chkIncludeSubdirectories
             // 
-            this.chkIncludeSubdirectories.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.chkIncludeSubdirectories.AutoSize = true;
-            this.chkIncludeSubdirectories.Location = new System.Drawing.Point(540, 30);
+            resources.ApplyResources(this.chkIncludeSubdirectories, "chkIncludeSubdirectories");
             this.chkIncludeSubdirectories.Name = "chkIncludeSubdirectories";
-            this.chkIncludeSubdirectories.Size = new System.Drawing.Size(135, 17);
-            this.chkIncludeSubdirectories.TabIndex = 3;
-            this.chkIncludeSubdirectories.Text = "Include &sub-directories";
             this.chkIncludeSubdirectories.UseVisualStyleBackColor = true;
             // 
             // txtFileMasks
             // 
             this.txtFileMasks.AcceptsReturn = true;
-            this.txtFileMasks.Location = new System.Drawing.Point(10, 77);
-            this.txtFileMasks.Multiline = true;
+            resources.ApplyResources(this.txtFileMasks, "txtFileMasks");
             this.txtFileMasks.Name = "txtFileMasks";
-            this.txtFileMasks.Size = new System.Drawing.Size(200, 100);
-            this.txtFileMasks.TabIndex = 5;
-            this.txtFileMasks.WordWrap = false;
             // 
             // lstValidCharsets
             // 
+            resources.ApplyResources(this.lstValidCharsets, "lstValidCharsets");
             this.lstValidCharsets.CheckOnClick = true;
             this.lstValidCharsets.FormattingEnabled = true;
-            this.lstValidCharsets.Location = new System.Drawing.Point(220, 77);
             this.lstValidCharsets.Name = "lstValidCharsets";
-            this.lstValidCharsets.Size = new System.Drawing.Size(200, 100);
-            this.lstValidCharsets.TabIndex = 7;
             // 
             // btnValidate
             // 
-            this.btnValidate.Location = new System.Drawing.Point(430, 126);
+            resources.ApplyResources(this.btnValidate, "btnValidate");
             this.btnValidate.Name = "btnValidate";
-            this.btnValidate.Size = new System.Drawing.Size(75, 23);
-            this.btnValidate.TabIndex = 8;
-            this.btnValidate.Text = "&Validate";
             this.btnValidate.UseVisualStyleBackColor = true;
             this.btnValidate.Click += new System.EventHandler(this.OnAction);
             // 
             // btnAbout
             // 
-            this.btnAbout.Location = new System.Drawing.Point(430, 154);
+            resources.ApplyResources(this.btnAbout, "btnAbout");
             this.btnAbout.Name = "btnAbout";
-            this.btnAbout.Size = new System.Drawing.Size(75, 23);
-            this.btnAbout.TabIndex = 10;
-            this.btnAbout.Text = "&About...";
             this.btnAbout.UseVisualStyleBackColor = true;
             this.btnAbout.Click += new System.EventHandler(this.OnAbout);
             // 
             // lstResults
             // 
-            this.lstResults.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            resources.ApplyResources(this.lstResults, "lstResults");
             this.lstResults.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             colEncoding,
             colFileName,
             colDirectory});
             this.lstResults.FullRowSelect = true;
             this.lstResults.GridLines = true;
-            this.lstResults.Location = new System.Drawing.Point(10, 187);
             this.lstResults.Name = "lstResults";
-            this.lstResults.Size = new System.Drawing.Size(680, 300);
-            this.lstResults.TabIndex = 9;
             this.lstResults.UseCompatibleStateImageBehavior = false;
             this.lstResults.View = System.Windows.Forms.View.Details;
             // 
             // dlgBrowseDirectories
             // 
-            this.dlgBrowseDirectories.Description = "Select the directory that you wish to check:";
+            resources.ApplyResources(this.dlgBrowseDirectories, "dlgBrowseDirectories");
             // 
             // statusBar
             // 
+            resources.ApplyResources(this.statusBar, "statusBar");
             this.statusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.actionProgress,
             this.actionStatus});
-            this.statusBar.Location = new System.Drawing.Point(0, 497);
             this.statusBar.Name = "statusBar";
-            this.statusBar.Size = new System.Drawing.Size(700, 22);
-            this.statusBar.TabIndex = 12;
-            this.statusBar.Visible = false;
             // 
             // actionProgress
             // 
+            resources.ApplyResources(this.actionProgress, "actionProgress");
             this.actionProgress.Name = "actionProgress";
-            this.actionProgress.Size = new System.Drawing.Size(100, 16);
             this.actionProgress.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             // 
             // actionStatus
             // 
+            resources.ApplyResources(this.actionStatus, "actionStatus");
             this.actionStatus.Name = "actionStatus";
-            this.actionStatus.Size = new System.Drawing.Size(0, 17);
             // 
             // btnView
             // 
-            this.btnView.Location = new System.Drawing.Point(430, 97);
+            resources.ApplyResources(this.btnView, "btnView");
             this.btnView.Name = "btnView";
-            this.btnView.Size = new System.Drawing.Size(75, 23);
-            this.btnView.TabIndex = 13;
-            this.btnView.Text = "Vie&w";
             this.btnView.UseVisualStyleBackColor = true;
             this.btnView.Click += new System.EventHandler(this.OnAction);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(700, 519);
             this.Controls.Add(this.btnView);
             this.Controls.Add(this.statusBar);
             this.Controls.Add(this.lstResults);
@@ -241,11 +189,8 @@
             this.Controls.Add(this.btnBrowseDirectories);
             this.Controls.Add(this.txtBaseDirectory);
             this.Controls.Add(lblBaseDirectory);
-            this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MinimumSize = new System.Drawing.Size(525, 350);
+            this.DoubleBuffered = true;
             this.Name = "MainForm";
-            this.Text = "File Encoding Checker";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OnFormClosing);
             this.Load += new System.EventHandler(this.OnFormLoad);
             this.statusBar.ResumeLayout(false);

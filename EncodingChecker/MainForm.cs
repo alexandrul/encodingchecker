@@ -57,7 +57,8 @@ namespace EncodingChecker
         {
             //Populate the valid charsets list by using reflection to read the constants in the
             //Ude.Charsets class.
-            FieldInfo[] charsetConstants = typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
+            FieldInfo[] charsetConstants =
+                typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
             foreach (FieldInfo charsetConstant in charsetConstants)
             {
                 if (charsetConstant.FieldType != typeof(string))
@@ -103,7 +104,9 @@ namespace EncodingChecker
             string settingsFileName = GetSettingsFileName();
             if (!File.Exists(settingsFileName))
                 return;
-            using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (
+                FileStream settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read,
+                    FileShare.Read))
             {
                 BinaryFormatter formatter = new BinaryFormatter();
                 object settingsInstance = formatter.Deserialize(settingsFile);
@@ -131,7 +134,9 @@ namespace EncodingChecker
             _settings.WindowPosition.Height = Height;
 
             string settingsFileName = GetSettingsFileName();
-            using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (
+                FileStream settingsFile = new FileStream(settingsFileName, FileMode.Create, FileAccess.Write,
+                    FileShare.None))
             {
                 BinaryFormatter formatter = new BinaryFormatter();
                 formatter.Serialize(settingsFile, _settings);
@@ -141,7 +146,9 @@ namespace EncodingChecker
 
         private static string GetSettingsFileName()
         {
-            string dataDirectory = ApplicationDeployment.IsNetworkDeployed ? ApplicationDeployment.CurrentDeployment.DataDirectory : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string dataDirectory = ApplicationDeployment.IsNetworkDeployed
+                ? ApplicationDeployment.CurrentDeployment.DataDirectory
+                : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             if (string.IsNullOrEmpty(dataDirectory) || !Directory.Exists(dataDirectory))
                 dataDirectory = Environment.CurrentDirectory;
             dataDirectory = Path.Combine(dataDirectory, "EncodingChecker");
@@ -149,7 +156,6 @@ namespace EncodingChecker
                 Directory.CreateDirectory(dataDirectory);
             return Path.Combine(dataDirectory, "Settings.bin");
         }
-
         #endregion
 
         #region Action button handling
@@ -184,7 +190,7 @@ namespace EncodingChecker
 
             _currentAction = action;
 
-            UpdateUIOnActionStart(action);
+            UpdateControlsOnActionStart(action);
 
             List<string> validCharsets = new List<string>(lstValidCharsets.CheckedItems.Count);
             foreach (string validCharset in lstValidCharsets.CheckedItems)
@@ -260,15 +266,17 @@ namespace EncodingChecker
 
         private static IEnumerable<Regex> GenerateMaskPatterns(string fileMaskString)
         {
-            string[] fileMasks = fileMaskString.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            string[] fileMasks = fileMaskString.Split(new string[] { Environment.NewLine },
+                StringSplitOptions.RemoveEmptyEntries);
 
             List<Regex> maskPatterns = new List<Regex>(fileMasks.Length);
             foreach (string fileMask in fileMasks)
             {
                 if (string.IsNullOrEmpty(fileMask))
                     continue;
-                Regex maskPattern = new Regex("^" + fileMask.Replace(".", "[.]").Replace("*", ".*").Replace("?", ".") + "$",
-                    RegexOptions.IgnoreCase);
+                Regex maskPattern =
+                    new Regex("^" + fileMask.Replace(".", "[.]").Replace("*", ".*").Replace("?", ".") + "$",
+                        RegexOptions.IgnoreCase);
                 maskPatterns.Add(maskPattern);
             }
             return maskPatterns;
@@ -288,7 +296,8 @@ namespace EncodingChecker
         {
             WorkerProgress progress = (WorkerProgress)e.UserState;
 
-            ListViewItem resultItem = new ListViewItem(new string[] { progress.Charset, progress.FileName, progress.DirectoryName }, -1);
+            ListViewItem resultItem =
+                new ListViewItem(new string[] { progress.Charset, progress.FileName, progress.DirectoryName }, -1);
             lstResults.Items.Add(resultItem);
 
             actionProgress.Value = e.ProgressPercentage;
@@ -299,11 +308,11 @@ namespace EncodingChecker
         {
             foreach (ColumnHeader columnHeader in lstResults.Columns)
                 columnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
-            UpdateUIOnActionDone(e.Cancelled);
+            UpdateControlsOnActionDone(e.Cancelled);
         }
         #endregion
 
-        private void UpdateUIOnActionStart(CurrentAction action)
+        private void UpdateControlsOnActionStart(CurrentAction action)
         {
             Button actionButton = action == CurrentAction.View ? btnView : btnValidate;
             Button otherActionButton = action == CurrentAction.View ? btnValidate : btnView;
@@ -311,13 +320,14 @@ namespace EncodingChecker
             actionButton.Text = CancelCaption;
             actionButton.Tag = CurrentAction.Cancel;
             otherActionButton.Enabled = false;
+
             actionProgress.Value = 0;
+            actionProgress.Visible = true;
             actionStatus.Text = string.Empty;
-            statusBar.Visible = true;
             lstResults.Items.Clear();
         }
 
-        private void UpdateUIOnActionDone(bool cancelled)
+        private void UpdateControlsOnActionDone(bool cancelled)
         {
             Button actionButton = _currentAction == CurrentAction.View ? btnView : btnValidate;
             Button otherActionButton = _currentAction == CurrentAction.View ? btnValidate : btnView;
@@ -327,7 +337,12 @@ namespace EncodingChecker
             otherActionButton.Enabled = true;
             if (cancelled)
                 actionButton.Enabled = true;
-            statusBar.Visible = false;
+
+            actionProgress.Visible = false;
+
+            string statusMessage = _currentAction == CurrentAction.View
+                ? "{0} files processed" : "{0} files do not have the correct encoding";
+            actionStatus.Text = string.Format(statusMessage, lstResults.Items.Count);
         }
 
         private void ShowWarning(string message, params object[] args)
