@@ -62,7 +62,7 @@
             lblVersion.Name = "lblVersion";
             lblVersion.Size = new System.Drawing.Size(60, 18);
             lblVersion.TabIndex = 1;
-            lblVersion.Text = "Version 1.0";
+            lblVersion.Text = "Version 1.1";
             lblVersion.UseCompatibleTextRendering = true;
             // 
             // lblCredits

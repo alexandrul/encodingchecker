@@ -35,7 +35,6 @@
             System.Windows.Forms.ColumnHeader colEncoding;
             System.Windows.Forms.ColumnHeader colFileName;
             System.Windows.Forms.ColumnHeader colDirectory;
-            this.txtBaseDirectory = new System.Windows.Forms.TextBox();
             this.btnBrowseDirectories = new System.Windows.Forms.Button();
             this.chkIncludeSubdirectories = new System.Windows.Forms.CheckBox();
             this.txtFileMasks = new System.Windows.Forms.TextBox();
@@ -48,6 +47,7 @@
             this.actionProgress = new System.Windows.Forms.ToolStripProgressBar();
             this.actionStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.btnView = new System.Windows.Forms.Button();
+            this.lstBaseDirectory = new System.Windows.Forms.ComboBox();
             lblBaseDirectory = new System.Windows.Forms.Label();
             lblFileMasks = new System.Windows.Forms.Label();
             lblValidCharsets = new System.Windows.Forms.Label();
@@ -84,11 +84,6 @@
             // 
             resources.ApplyResources(colDirectory, "colDirectory");
             // 
-            // txtBaseDirectory
-            // 
-            resources.ApplyResources(this.txtBaseDirectory, "txtBaseDirectory");
-            this.txtBaseDirectory.Name = "txtBaseDirectory";
-            // 
             // btnBrowseDirectories
             // 
             resources.ApplyResources(this.btnBrowseDirectories, "btnBrowseDirectories");
@@ -110,9 +105,9 @@
             // 
             // lstValidCharsets
             // 
-            resources.ApplyResources(this.lstValidCharsets, "lstValidCharsets");
             this.lstValidCharsets.CheckOnClick = true;
             this.lstValidCharsets.FormattingEnabled = true;
+            resources.ApplyResources(this.lstValidCharsets, "lstValidCharsets");
             this.lstValidCharsets.Name = "lstValidCharsets";
             // 
             // btnValidate
@@ -138,6 +133,8 @@
             colDirectory});
             this.lstResults.FullRowSelect = true;
             this.lstResults.GridLines = true;
+            this.lstResults.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.lstResults.HideSelection = false;
             this.lstResults.Name = "lstResults";
             this.lstResults.UseCompatibleStateImageBehavior = false;
             this.lstResults.View = System.Windows.Forms.View.Details;
@@ -148,22 +145,22 @@
             // 
             // statusBar
             // 
-            resources.ApplyResources(this.statusBar, "statusBar");
             this.statusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.actionProgress,
             this.actionStatus});
+            resources.ApplyResources(this.statusBar, "statusBar");
             this.statusBar.Name = "statusBar";
             // 
             // actionProgress
             // 
-            resources.ApplyResources(this.actionProgress, "actionProgress");
             this.actionProgress.Name = "actionProgress";
+            resources.ApplyResources(this.actionProgress, "actionProgress");
             this.actionProgress.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             // 
             // actionStatus
             // 
-            resources.ApplyResources(this.actionStatus, "actionStatus");
             this.actionStatus.Name = "actionStatus";
+            resources.ApplyResources(this.actionStatus, "actionStatus");
             // 
             // btnView
             // 
@@ -172,10 +169,17 @@
             this.btnView.UseVisualStyleBackColor = true;
             this.btnView.Click += new System.EventHandler(this.OnAction);
             // 
+            // lstBaseDirectory
+            // 
+            this.lstBaseDirectory.FormattingEnabled = true;
+            resources.ApplyResources(this.lstBaseDirectory, "lstBaseDirectory");
+            this.lstBaseDirectory.Name = "lstBaseDirectory";
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.lstBaseDirectory);
             this.Controls.Add(this.btnView);
             this.Controls.Add(this.statusBar);
             this.Controls.Add(this.lstResults);
@@ -187,7 +191,6 @@
             this.Controls.Add(lblFileMasks);
             this.Controls.Add(this.chkIncludeSubdirectories);
             this.Controls.Add(this.btnBrowseDirectories);
-            this.Controls.Add(this.txtBaseDirectory);
             this.Controls.Add(lblBaseDirectory);
             this.DoubleBuffered = true;
             this.Name = "MainForm";
@@ -202,7 +205,6 @@
 
         #endregion
 
-        private System.Windows.Forms.TextBox txtBaseDirectory;
         private System.Windows.Forms.Button btnBrowseDirectories;
         private System.Windows.Forms.CheckBox chkIncludeSubdirectories;
         private System.Windows.Forms.TextBox txtFileMasks;
@@ -215,6 +217,7 @@
         private System.Windows.Forms.ToolStripStatusLabel actionStatus;
         private System.Windows.Forms.StatusStrip statusBar;
         private System.Windows.Forms.Button btnView;
+        private System.Windows.Forms.ComboBox lstBaseDirectory;
     }
 }
 

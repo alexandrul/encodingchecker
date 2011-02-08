@@ -87,9 +87,12 @@ namespace EncodingChecker
 
         private void OnBrowseDirectories(object sender, EventArgs e)
         {
-            dlgBrowseDirectories.SelectedPath = txtBaseDirectory.Text;
+            dlgBrowseDirectories.SelectedPath = lstBaseDirectory.Text;
             if (dlgBrowseDirectories.ShowDialog(this) == DialogResult.OK)
-                txtBaseDirectory.Text = dlgBrowseDirectories.SelectedPath;
+            {
+                lstBaseDirectory.Text = dlgBrowseDirectories.SelectedPath;
+                lstBaseDirectory.Items.Add(dlgBrowseDirectories.SelectedPath);
+            }
         }
 
         private void OnAbout(object sender, EventArgs e)
@@ -113,9 +116,18 @@ namespace EncodingChecker
                 _settings = (Settings)settingsInstance;
             }
 
-            txtBaseDirectory.Text = _settings.BaseDirectory;
+            if (_settings.RecentDirectories == null || _settings.RecentDirectories.Count == 0)
+                lstBaseDirectory.Text = Environment.CurrentDirectory;
             chkIncludeSubdirectories.Checked = _settings.IncludeSubdirectories;
             txtFileMasks.Text = _settings.FileMasks;
+            if (_settings.ValidCharsets != null && _settings.ValidCharsets.Length > 0)
+            {
+                for (int i = 0; i < lstValidCharsets.Items.Count; i++)
+                    if (Array.Exists(_settings.ValidCharsets, delegate(string charset) {
+                                                                  return charset.Equals((string)lstValidCharsets.Items[i]);
+                                                              }))
+                        lstValidCharsets.SetItemChecked(i, true);
+            }
             if (_settings.WindowPosition != null)
                 _settings.WindowPosition.ApplyTo(this);
         }
@@ -124,9 +136,13 @@ namespace EncodingChecker
         {
             if (_settings == null)
                 _settings = new Settings();
-            _settings.BaseDirectory = txtBaseDirectory.Text;
             _settings.IncludeSubdirectories = chkIncludeSubdirectories.Checked;
             _settings.FileMasks = txtFileMasks.Text;
+
+            _settings.ValidCharsets = new string[lstValidCharsets.CheckedItems.Count];
+            for (int i = 0; i < lstValidCharsets.CheckedItems.Count; i++)
+                _settings.ValidCharsets[i] = (string)lstValidCharsets.CheckedItems[i];
+
             _settings.WindowPosition = new WindowPosition();
             _settings.WindowPosition.Left = Left;
             _settings.WindowPosition.Top = Top;
@@ -171,7 +187,7 @@ namespace EncodingChecker
 
         private void StartAction(CurrentAction action)
         {
-            string directory = txtBaseDirectory.Text;
+            string directory = lstBaseDirectory.Text;
             if (string.IsNullOrEmpty(directory))
             {
                 ShowWarning("Please specify a directory to check");
@@ -268,9 +284,12 @@ namespace EncodingChecker
         {
             string[] fileMasks = fileMaskString.Split(new string[] { Environment.NewLine },
                 StringSplitOptions.RemoveEmptyEntries);
+            string[] processedFileMasks = Array.FindAll(fileMasks, delegate(string mask) { return mask.Trim().Length > 0; });
+            if (processedFileMasks.Length == 0)
+                processedFileMasks = new string[] { "*.*" };
 
-            List<Regex> maskPatterns = new List<Regex>(fileMasks.Length);
-            foreach (string fileMask in fileMasks)
+            List<Regex> maskPatterns = new List<Regex>(processedFileMasks.Length);
+            foreach (string fileMask in processedFileMasks)
             {
                 if (string.IsNullOrEmpty(fileMask))
                     continue;
@@ -306,8 +325,11 @@ namespace EncodingChecker
 
         private void ActionWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            foreach (ColumnHeader columnHeader in lstResults.Columns)
-                columnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+            if (lstResults.Items.Count > 0)
+            {
+                foreach (ColumnHeader columnHeader in lstResults.Columns)
+                    columnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
+            }
             UpdateControlsOnActionDone(e.Cancelled);
         }
         #endregion
