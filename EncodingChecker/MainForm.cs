@@ -5,6 +5,7 @@ using System.Deployment.Application;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -34,11 +35,12 @@ namespace EncodingChecker
         {
             View,
             Validate,
-            Cancel,
         }
 
         private readonly BackgroundWorker _actionWorker;
-        private CurrentAction _currentAction = CurrentAction.Cancel; //Indicates no current action
+        private CurrentAction _currentAction;
+        private readonly List<string> _detectionEncodings;
+        private readonly List<string> _conversionEncodings;
         private Settings _settings;
 
         public MainForm()
@@ -51,25 +53,47 @@ namespace EncodingChecker
             _actionWorker.DoWork += ActionWorkerDoWork;
             _actionWorker.ProgressChanged += ActionWorkerProgressChanged;
             _actionWorker.RunWorkerCompleted += ActionWorkerCompleted;
+
+            //Using reflection, figure out all the charsets that the Ude framework supports by reflecting
+            //over all the strings constants in the Ude.Charsets class. These represent all the encodings
+            //that can be detected by the program.
+            FieldInfo[] charsetConstants = typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
+            _detectionEncodings = new List<string>(charsetConstants.Length);
+            foreach (FieldInfo charsetConstant in charsetConstants)
+            {
+                if (charsetConstant.FieldType == typeof(string))
+                    _detectionEncodings.Add((string)charsetConstant.GetValue(null));
+            }
+
+            EncodingInfo[] availableEncodings = Encoding.GetEncodings();
+            _conversionEncodings = new List<string>(_detectionEncodings.Count);
+            foreach (string detectionEncoding in _detectionEncodings)
+            {
+                string encodingToCheck = detectionEncoding;
+                bool encodingExists = Array.Exists(availableEncodings,
+                    delegate(EncodingInfo ei) { return ei.Name.Equals(encodingToCheck, StringComparison.OrdinalIgnoreCase); });
+                if (!encodingExists)
+                    _conversionEncodings.Add(encodingToCheck);
+            }
         }
 
         private void OnFormLoad(object sender, EventArgs e)
         {
-            //Populate the valid charsets list by using reflection to read the constants in the
-            //Ude.Charsets class.
-            FieldInfo[] charsetConstants =
-                typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
-            foreach (FieldInfo charsetConstant in charsetConstants)
-            {
-                if (charsetConstant.FieldType != typeof(string))
-                    continue;
-                object value = charsetConstant.GetValue(null);
-                lstValidCharsets.Items.Add(value);
-            }
+            foreach (string encoding in _detectionEncodings)
+                lstValidCharsets.Items.Add(encoding);
 
             //Set the initial action for the action buttons in their Tag properties
             btnView.Tag = CurrentAction.View;
             btnValidate.Tag = CurrentAction.Validate;
+
+            Converter<string, ToolStripItem> converter =
+                delegate(string encodingName) {
+                    ToolStripMenuItem menu = new ToolStripMenuItem(encodingName, null, OnAction);
+                    //menu.Tag = CurrentAction.Convert;
+                    return menu;
+                };
+            ToolStripItem[] conversionItems = _conversionEncodings.ConvertAll(converter).ToArray();
+            tbtnConvert.DropDownItems.AddRange(conversionItems);
 
             LoadSettings();
 
@@ -95,6 +119,29 @@ namespace EncodingChecker
             }
         }
 
+        private void OnResultItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            tbtnConvert.Enabled = lstResults.CheckedItems.Count > 0;
+        }
+
+        private void OnSelectAllResults(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in lstResults.Items)
+                item.Checked = true;
+        }
+
+        private void OnUnselectAllResults(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in lstResults.Items)
+                item.Checked = false;
+        }
+
+        private void OnToggleResultSelections(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in lstResults.Items)
+                item.Checked = !item.Checked;
+        }
+
         private void OnAbout(object sender, EventArgs e)
         {
             using (AboutForm aboutForm = new AboutForm())
@@ -116,7 +163,13 @@ namespace EncodingChecker
                 _settings = (Settings)settingsInstance;
             }
 
-            if (_settings.RecentDirectories == null || _settings.RecentDirectories.Count == 0)
+            if (_settings.RecentDirectories != null && _settings.RecentDirectories.Count > 0)
+            {
+                foreach (string recentDirectory in _settings.RecentDirectories)
+                    lstBaseDirectory.Items.Add(recentDirectory);
+                lstBaseDirectory.SelectedIndex = 0;
+            }
+            else
                 lstBaseDirectory.Text = Environment.CurrentDirectory;
             chkIncludeSubdirectories.Checked = _settings.IncludeSubdirectories;
             txtFileMasks.Text = _settings.FileMasks;
@@ -178,11 +231,14 @@ namespace EncodingChecker
         private void OnAction(object sender, EventArgs e)
         {
             Button actionButton = (Button)sender;
-            CurrentAction action = (CurrentAction)actionButton.Tag;
-            if (action == CurrentAction.Cancel)
-                CancelAction(action);
+            if (actionButton.Tag == null)
+                CancelAction();
             else
-                StartAction(action);
+            {
+                _currentAction = (CurrentAction)actionButton.Tag;
+                actionButton.Tag = null;
+                StartAction(_currentAction);
+            }
         }
 
         private void StartAction(CurrentAction action)
@@ -206,6 +262,8 @@ namespace EncodingChecker
 
             _currentAction = action;
 
+            _settings.RecentDirectories.Add(directory);
+
             UpdateControlsOnActionStart(action);
 
             List<string> validCharsets = new List<string>(lstValidCharsets.CheckedItems.Count);
@@ -221,11 +279,11 @@ namespace EncodingChecker
             _actionWorker.RunWorkerAsync(args);
         }
 
-        private void CancelAction(CurrentAction action)
+        private void CancelAction()
         {
             if (_actionWorker.IsBusy)
             {
-                Button actionButton = action == CurrentAction.View ? btnView : btnValidate;
+                Button actionButton = _currentAction == CurrentAction.View ? btnView : btnValidate;
                 actionButton.Enabled = false;
                 _actionWorker.CancelAsync();
             }
@@ -249,6 +307,8 @@ namespace EncodingChecker
                     e.Cancel = true;
                     break;
                 }
+
+                System.Threading.Thread.SpinWait(1);
 
                 string path = allFiles[i];
                 string fileName = Path.GetFileName(path);
@@ -340,13 +400,19 @@ namespace EncodingChecker
             Button otherActionButton = action == CurrentAction.View ? btnValidate : btnView;
 
             actionButton.Text = CancelCaption;
-            actionButton.Tag = CurrentAction.Cancel;
+            actionButton.Tag = null;
             otherActionButton.Enabled = false;
+
+            tbtnConvert.Enabled = false;
+            tbtnSelectAll.Enabled = false;
+            tbtnSelectNone.Enabled = false;
+            tbtnToggleSelection.Enabled = false;
+
+            lstResults.Items.Clear();
 
             actionProgress.Value = 0;
             actionProgress.Visible = true;
             actionStatus.Text = string.Empty;
-            lstResults.Items.Clear();
         }
 
         private void UpdateControlsOnActionDone(bool cancelled)
@@ -359,6 +425,13 @@ namespace EncodingChecker
             otherActionButton.Enabled = true;
             if (cancelled)
                 actionButton.Enabled = true;
+
+            if (lstResults.Items.Count > 0)
+            {
+                tbtnSelectAll.Enabled = true;
+                tbtnSelectNone.Enabled = true;
+                tbtnToggleSelection.Enabled = true;
+            }
 
             actionProgress.Visible = false;
 
@@ -375,34 +448,26 @@ namespace EncodingChecker
         private const string ViewCaption = "Vie&w";
         private const string ValidateCaption = "&Validate";
         private const string CancelCaption = "&Cancel";
-    }
 
-    public sealed class Result
-    {
-        private readonly string _charset;
-        private readonly string _fileName;
-        private readonly string _directory;
-
-        public Result(string charset, string fileName, string directory)
+        private void button1_Click(object sender, EventArgs e)
         {
-            _charset = charset;
-            _fileName = fileName;
-            _directory = directory;
-        }
+            foreach (ListViewItem result in lstResults.CheckedItems)
+            {
+                string charset = result.SubItems[0].Text;
+                string fileName = result.SubItems[1].Text;
+                string directory = result.SubItems[2].Text;
 
-        public string Charset
-        {
-            get { return _charset; }
-        }
-
-        public string FileName
-        {
-            get { return _fileName; }
-        }
-
-        public string Directory
-        {
-            get { return _directory; }
+                string filePath = Path.Combine(directory, fileName);
+                string content;
+                using (StreamReader reader = new StreamReader(filePath, Encoding.GetEncoding(charset)))
+                    content = reader.ReadToEnd();
+                string correctCharset = (string)lstValidCharsets.CheckedItems[0];
+                using (StreamWriter writer = new StreamWriter(filePath, false, Encoding.GetEncoding(correctCharset)))
+                {
+                    writer.Write(content);
+                    writer.Flush();
+                }
+            }
         }
     }
 }
