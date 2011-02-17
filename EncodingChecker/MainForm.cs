@@ -5,6 +5,7 @@ using System.Deployment.Application;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -55,18 +56,14 @@ namespace EncodingChecker
 
         private void OnFormLoad(object sender, EventArgs e)
         {
-            //Populate the valid charsets list by using reflection to read the constants in the
-            //Ude.Charsets class.
-            FieldInfo[] charsetConstants =
-                typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
-            foreach (FieldInfo charsetConstant in charsetConstants)
+            IEnumerable<string> validCharsets = GetValidCharsets();
+            foreach (string validCharset in validCharsets)
             {
-                if (charsetConstant.FieldType != typeof(string))
-                    continue;
-                object value = charsetConstant.GetValue(null);
-                lstValidCharsets.Items.Add(value);
-                lstConvert.Items.Add(value);
+                lstValidCharsets.Items.Add(validCharset);
+                lstConvert.Items.Add(validCharset);
             }
+            if (lstConvert.Items.Count > 0)
+                lstConvert.SelectedIndex = 0;
 
             //Set the initial action for the action buttons in their Tag properties
             btnView.Tag = CurrentAction.View;
@@ -368,6 +365,34 @@ namespace EncodingChecker
             actionStatus.Text = string.Format(statusMessage, lstResults.Items.Count);
         }
 
+        private static IEnumerable<string> GetValidCharsets()
+        {
+            //Using reflection, figure out all the charsets that the Ude framework supports by reflecting
+            //over all the strings constants in the Ude.Charsets class. These represent all the encodings
+            //that can be detected by the program.
+            FieldInfo[] charsetConstants = typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
+            List<string> udeCharsets = new List<string>(charsetConstants.Length);
+            foreach (FieldInfo charsetConstant in charsetConstants)
+            {
+                if (charsetConstant.FieldType == typeof(string))
+                    udeCharsets.Add((string)charsetConstant.GetValue(null));
+            }
+
+            EncodingInfo[] availableEncodings = Encoding.GetEncodings();
+            string[] convertAll = Array.ConvertAll<EncodingInfo, string>(availableEncodings, delegate(EncodingInfo ei) { return ei.Name; });
+
+            List<string> validCharsets = new List<string>(udeCharsets.Count);
+            foreach (string udeCharset in udeCharsets)
+            {
+                string encodingToCheck = udeCharset;
+                bool encodingExists = Array.Exists(availableEncodings,
+                    delegate(EncodingInfo ei) { return ei.Name.Equals(encodingToCheck, StringComparison.OrdinalIgnoreCase); });
+                if (encodingExists)
+                    validCharsets.Add(encodingToCheck);
+            }
+            return validCharsets.ToArray();
+        }
+
         private void ShowWarning(string message, params object[] args)
         {
             MessageBox.Show(this, string.Format(message, args), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -376,5 +401,20 @@ namespace EncodingChecker
         private const string ViewCaption = "Vie&w";
         private const string ValidateCaption = "&Validate";
         private const string CancelCaption = "&Cancel";
+
+        private void lstResults_ItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            if (lstResults.CheckedItems.Count == 0)
+                chkSelectDeselectAll.CheckState = CheckState.Unchecked;
+            else if (lstResults.CheckedItems.Count == lstResults.Items.Count)
+                chkSelectDeselectAll.CheckState = CheckState.Checked;
+            else
+                chkSelectDeselectAll.CheckState = CheckState.Indeterminate;
+        }
+
+        private void chkSelectDeselectAll_CheckedChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }

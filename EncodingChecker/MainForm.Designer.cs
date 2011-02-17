@@ -143,6 +143,7 @@
             this.lstResults.Name = "lstResults";
             this.lstResults.UseCompatibleStateImageBehavior = false;
             this.lstResults.View = System.Windows.Forms.View.Details;
+            this.lstResults.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.lstResults_ItemChecked);
             // 
             // dlgBrowseDirectories
             // 
@@ -176,8 +177,8 @@
             // 
             // lstBaseDirectory
             // 
-            this.lstBaseDirectory.FormattingEnabled = true;
             resources.ApplyResources(this.lstBaseDirectory, "lstBaseDirectory");
+            this.lstBaseDirectory.FormattingEnabled = true;
             this.lstBaseDirectory.Name = "lstBaseDirectory";
             // 
             // lblConvert
@@ -203,6 +204,7 @@
             resources.ApplyResources(this.chkSelectDeselectAll, "chkSelectDeselectAll");
             this.chkSelectDeselectAll.Name = "chkSelectDeselectAll";
             this.chkSelectDeselectAll.UseVisualStyleBackColor = true;
+            this.chkSelectDeselectAll.CheckedChanged += new System.EventHandler(this.chkSelectDeselectAll_CheckedChanged);
             // 
             // MainForm
             // 
