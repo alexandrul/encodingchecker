@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.Windows.Forms.Label lblBaseDirectory;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             System.Windows.Forms.Label lblFileMasks;
@@ -54,6 +55,7 @@
             this.btnConvert = new System.Windows.Forms.Button();
             this.chkSelectDeselectAll = new System.Windows.Forms.CheckBox();
             this.btnCancel = new System.Windows.Forms.Button();
+            this.imgsResults = new System.Windows.Forms.ImageList(this.components);
             lblBaseDirectory = new System.Windows.Forms.Label();
             lblFileMasks = new System.Windows.Forms.Label();
             lblValidCharsets = new System.Windows.Forms.Label();
@@ -136,6 +138,7 @@
             this.lstResults.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.lstResults.HideSelection = false;
             this.lstResults.Name = "lstResults";
+            this.lstResults.SmallImageList = this.imgsResults;
             this.lstResults.UseCompatibleStateImageBehavior = false;
             this.lstResults.View = System.Windows.Forms.View.Details;
             this.lstResults.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.lstResults_ItemChecked);
@@ -223,6 +226,15 @@
             resources.ApplyResources(this.btnCancel, "btnCancel");
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.OnCancelAction);
+            // 
+            // imgsResults
+            // 
+            this.imgsResults.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imgsResults.ImageStream")));
+            this.imgsResults.TransparentColor = System.Drawing.Color.Transparent;
+            this.imgsResults.Images.SetKeyName(0, "Successful");
+            this.imgsResults.Images.SetKeyName(1, "Failed");
+            this.imgsResults.Images.SetKeyName(2, "Warning");
             // 
             // MainForm
             // 
@@ -277,6 +289,7 @@
         private System.Windows.Forms.ToolStripStatusLabel tlnkHelp;
         private System.Windows.Forms.ToolStripStatusLabel tlnkAbout;
         private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.ImageList imgsResults;
     }
 }
 

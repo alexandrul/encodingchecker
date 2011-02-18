@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Deployment.Application;
@@ -36,11 +37,11 @@ namespace EncodingChecker
         {
             View,
             Validate,
-            Cancel,
+            Convert,
         }
 
         private readonly BackgroundWorker _actionWorker;
-        private CurrentAction _currentAction = CurrentAction.Cancel; //Indicates no current action
+        private CurrentAction _currentAction;
         private Settings _settings;
 
         public MainForm()
@@ -66,9 +67,9 @@ namespace EncodingChecker
             if (lstConvert.Items.Count > 0)
                 lstConvert.SelectedIndex = 0;
 
-            //Set the initial action for the action buttons in their Tag properties
             btnView.Tag = CurrentAction.View;
             btnValidate.Tag = CurrentAction.Validate;
+            btnConvert.Tag = CurrentAction.Convert;
 
             LoadSettings();
 
@@ -100,16 +101,20 @@ namespace EncodingChecker
             string settingsFileName = GetSettingsFileName();
             if (!File.Exists(settingsFileName))
                 return;
-            using (
-                FileStream settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read,
-                    FileShare.Read))
+            using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 BinaryFormatter formatter = new BinaryFormatter();
                 object settingsInstance = formatter.Deserialize(settingsFile);
                 _settings = (Settings)settingsInstance;
             }
 
-            if (_settings.RecentDirectories == null || _settings.RecentDirectories.Count == 0)
+            if (_settings.RecentDirectories != null && _settings.RecentDirectories.Count > 0)
+            {
+                foreach (string recentDirectory in _settings.RecentDirectories)
+                    lstBaseDirectory.Items.Add(recentDirectory);
+                lstBaseDirectory.SelectedIndex = 0;
+            }
+            else
                 lstBaseDirectory.Text = Environment.CurrentDirectory;
             chkIncludeSubdirectories.Checked = _settings.IncludeSubdirectories;
             txtFileMasks.Text = _settings.FileMasks;
@@ -172,10 +177,7 @@ namespace EncodingChecker
         {
             Button actionButton = (Button)sender;
             CurrentAction action = (CurrentAction)actionButton.Tag;
-            if (action == CurrentAction.Cancel)
-                CancelAction();
-            else
-                StartAction(action);
+            StartAction(action);
         }
 
         private void StartAction(CurrentAction action)
@@ -225,16 +227,30 @@ namespace EncodingChecker
                 _actionWorker.CancelAsync();
             }
         }
+
+        private void OnCancelAction(object sender, EventArgs e)
+        {
+            if (_actionWorker.IsBusy)
+            {
+                btnCancel.Visible = false;
+                _actionWorker.CancelAsync();
+            }
+        }
         #endregion
 
         #region Background worker event handlers and helper methods
         private static void ActionWorkerDoWork(object sender, DoWorkEventArgs e)
         {
+            const int progressBufferSize = 5;
+
             BackgroundWorker worker = (BackgroundWorker)sender;
             WorkerArgs args = (WorkerArgs)e.Argument;
 
-            string[] allFiles = Directory.GetFiles(args.BaseDirectory, "*.*",
+            string[] allFiles = Directory.GetFiles(args.BaseDirectory, "*.xaml",
                 args.IncludeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+
+            WorkerProgress[] progressBuffer = new WorkerProgress[progressBufferSize];
+            int reportBufferCounter = 1;
 
             IEnumerable<Regex> maskPatterns = GenerateMaskPatterns(args.FileMasks);
             for (int i = 0; i < allFiles.Length; i++)
@@ -266,12 +282,21 @@ namespace EncodingChecker
 
                 string directoryName = Path.GetDirectoryName(path);
 
-                int percentageCompleted = (i * 100) / allFiles.Length;
                 WorkerProgress progress = new WorkerProgress();
                 progress.Charset = detector.Charset ?? "(Unknown)";
                 progress.FileName = fileName;
                 progress.DirectoryName = directoryName;
-                worker.ReportProgress(percentageCompleted, progress);
+                progressBuffer[reportBufferCounter - 1] = progress;
+                reportBufferCounter++;
+                if (reportBufferCounter > progressBufferSize)
+                {
+                    reportBufferCounter = 1;
+                    int percentageCompleted = (i * 100) / allFiles.Length;
+                    WorkerProgress[] reportProgress = new WorkerProgress[progressBufferSize];
+                    Array.Copy(progressBuffer, reportProgress, progressBufferSize);
+                    worker.ReportProgress(percentageCompleted, reportProgress);
+                    Array.Clear(progressBuffer, 0, progressBufferSize);
+                }
             }
         }
 
@@ -308,14 +333,19 @@ namespace EncodingChecker
 
         private void ActionWorkerProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            WorkerProgress progress = (WorkerProgress)e.UserState;
+            WorkerProgress[] progresses = (WorkerProgress[])e.UserState;
 
-            ListViewItem resultItem =
-                new ListViewItem(new string[] { progress.Charset, progress.FileName, progress.DirectoryName }, -1);
-            lstResults.Items.Add(resultItem);
+            foreach (WorkerProgress progress in progresses)
+            {
+                if (progress == null)
+                    break;
+                ListViewItem resultItem = new ListViewItem(new string[] { progress.Charset, progress.FileName, progress.DirectoryName }, -1);
+                //resultItem.ImageIndex = 1;
+                lstResults.Items.Add(resultItem);
+                actionStatus.Text = progress.FileName;
+            }
 
             actionProgress.Value = e.ProgressPercentage;
-            actionStatus.Text = progress.FileName;
         }
 
         private void ActionWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -331,29 +361,26 @@ namespace EncodingChecker
 
         private void UpdateControlsOnActionStart(CurrentAction action)
         {
-            Button actionButton = action == CurrentAction.View ? btnView : btnValidate;
-            Button otherActionButton = action == CurrentAction.View ? btnValidate : btnView;
+            btnView.Enabled = false;
+            btnValidate.Enabled = false;
+            btnConvert.Enabled = false;
 
-            actionButton.Text = CancelCaption;
-            actionButton.Tag = CurrentAction.Cancel;
-            otherActionButton.Enabled = false;
+            btnCancel.Visible = true;
+
+            lstResults.Items.Clear();
 
             actionProgress.Value = 0;
             actionProgress.Visible = true;
             actionStatus.Text = string.Empty;
-            lstResults.Items.Clear();
         }
 
         private void UpdateControlsOnActionDone(bool cancelled)
         {
-            Button actionButton = _currentAction == CurrentAction.View ? btnView : btnValidate;
-            Button otherActionButton = _currentAction == CurrentAction.View ? btnValidate : btnView;
+            btnView.Enabled = true;
+            btnValidate.Enabled = true;
+            btnConvert.Enabled = true;
 
-            actionButton.Text = _currentAction == CurrentAction.View ? ViewCaption : ValidateCaption;
-            actionButton.Tag = _currentAction;
-            otherActionButton.Enabled = true;
-            if (cancelled)
-                actionButton.Enabled = true;
+            btnCancel.Visible = false;
 
             actionProgress.Visible = false;
 
@@ -394,10 +421,6 @@ namespace EncodingChecker
         {
             MessageBox.Show(this, string.Format(message, args), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
-
-        private const string ViewCaption = "Vie&w";
-        private const string ValidateCaption = "&Validate";
-        private const string CancelCaption = "&Cancel";
 
         private void lstResults_ItemChecked(object sender, ItemCheckedEventArgs e)
         {
