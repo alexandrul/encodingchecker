@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Deployment.Application;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -91,12 +92,6 @@ namespace EncodingChecker
                 lstBaseDirectory.Text = dlgBrowseDirectories.SelectedPath;
                 lstBaseDirectory.Items.Add(dlgBrowseDirectories.SelectedPath);
             }
-        }
-
-        private void OnAbout(object sender, EventArgs e)
-        {
-            using (AboutForm aboutForm = new AboutForm())
-                aboutForm.ShowDialog(this);
         }
 
         #region Loading and saving of settings
@@ -203,6 +198,8 @@ namespace EncodingChecker
             }
 
             _currentAction = action;
+
+            _settings.RecentDirectories.Add(directory);
 
             UpdateControlsOnActionStart(action);
 
@@ -415,6 +412,19 @@ namespace EncodingChecker
         private void chkSelectDeselectAll_CheckedChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void OnHelp(object sender, EventArgs e)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo("http://encodingchecker.codeplex.com/documentation");
+            psi.UseShellExecute = true;
+            Process.Start(psi);
+        }
+
+        private void OnAbout(object sender, EventArgs e)
+        {
+            using (AboutForm aboutForm = new AboutForm())
+                aboutForm.ShowDialog(this);
         }
     }
 }

@@ -40,10 +40,11 @@
             this.txtFileMasks = new System.Windows.Forms.TextBox();
             this.lstValidCharsets = new System.Windows.Forms.CheckedListBox();
             this.btnValidate = new System.Windows.Forms.Button();
-            this.btnAbout = new System.Windows.Forms.Button();
             this.lstResults = new System.Windows.Forms.ListView();
             this.dlgBrowseDirectories = new System.Windows.Forms.FolderBrowserDialog();
             this.statusBar = new System.Windows.Forms.StatusStrip();
+            this.tlnkHelp = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tlnkAbout = new System.Windows.Forms.ToolStripStatusLabel();
             this.actionProgress = new System.Windows.Forms.ToolStripProgressBar();
             this.actionStatus = new System.Windows.Forms.ToolStripStatusLabel();
             this.btnView = new System.Windows.Forms.Button();
@@ -52,6 +53,7 @@
             this.lstConvert = new System.Windows.Forms.ComboBox();
             this.btnConvert = new System.Windows.Forms.Button();
             this.chkSelectDeselectAll = new System.Windows.Forms.CheckBox();
+            this.btnCancel = new System.Windows.Forms.Button();
             lblBaseDirectory = new System.Windows.Forms.Label();
             lblFileMasks = new System.Windows.Forms.Label();
             lblValidCharsets = new System.Windows.Forms.Label();
@@ -121,13 +123,6 @@
             this.btnValidate.UseVisualStyleBackColor = true;
             this.btnValidate.Click += new System.EventHandler(this.OnAction);
             // 
-            // btnAbout
-            // 
-            resources.ApplyResources(this.btnAbout, "btnAbout");
-            this.btnAbout.Name = "btnAbout";
-            this.btnAbout.UseVisualStyleBackColor = true;
-            this.btnAbout.Click += new System.EventHandler(this.OnAbout);
-            // 
             // lstResults
             // 
             resources.ApplyResources(this.lstResults, "lstResults");
@@ -152,10 +147,27 @@
             // statusBar
             // 
             this.statusBar.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.tlnkHelp,
+            this.tlnkAbout,
             this.actionProgress,
             this.actionStatus});
             resources.ApplyResources(this.statusBar, "statusBar");
             this.statusBar.Name = "statusBar";
+            // 
+            // tlnkHelp
+            // 
+            this.tlnkHelp.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tlnkHelp.IsLink = true;
+            this.tlnkHelp.Name = "tlnkHelp";
+            resources.ApplyResources(this.tlnkHelp, "tlnkHelp");
+            this.tlnkHelp.Click += new System.EventHandler(this.OnHelp);
+            // 
+            // tlnkAbout
+            // 
+            this.tlnkAbout.IsLink = true;
+            this.tlnkAbout.Name = "tlnkAbout";
+            resources.ApplyResources(this.tlnkAbout, "tlnkAbout");
+            this.tlnkAbout.Click += new System.EventHandler(this.OnAbout);
             // 
             // actionProgress
             // 
@@ -206,10 +218,17 @@
             this.chkSelectDeselectAll.UseVisualStyleBackColor = true;
             this.chkSelectDeselectAll.CheckedChanged += new System.EventHandler(this.chkSelectDeselectAll_CheckedChanged);
             // 
+            // btnCancel
+            // 
+            resources.ApplyResources(this.btnCancel, "btnCancel");
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.UseVisualStyleBackColor = true;
+            // 
             // MainForm
             // 
             resources.ApplyResources(this, "$this");
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.chkSelectDeselectAll);
             this.Controls.Add(this.btnConvert);
             this.Controls.Add(this.lstConvert);
@@ -218,7 +237,6 @@
             this.Controls.Add(this.btnView);
             this.Controls.Add(this.statusBar);
             this.Controls.Add(this.lstResults);
-            this.Controls.Add(this.btnAbout);
             this.Controls.Add(this.btnValidate);
             this.Controls.Add(this.lstValidCharsets);
             this.Controls.Add(lblValidCharsets);
@@ -245,7 +263,6 @@
         private System.Windows.Forms.TextBox txtFileMasks;
         private System.Windows.Forms.CheckedListBox lstValidCharsets;
         private System.Windows.Forms.Button btnValidate;
-        private System.Windows.Forms.Button btnAbout;
         private System.Windows.Forms.ListView lstResults;
         private System.Windows.Forms.FolderBrowserDialog dlgBrowseDirectories;
         private System.Windows.Forms.ToolStripProgressBar actionProgress;
@@ -257,6 +274,9 @@
         private System.Windows.Forms.ComboBox lstConvert;
         private System.Windows.Forms.Button btnConvert;
         private System.Windows.Forms.CheckBox chkSelectDeselectAll;
+        private System.Windows.Forms.ToolStripStatusLabel tlnkHelp;
+        private System.Windows.Forms.ToolStripStatusLabel tlnkAbout;
+        private System.Windows.Forms.Button btnCancel;
     }
 }
 
