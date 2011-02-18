@@ -95,6 +95,52 @@ namespace EncodingChecker
             }
         }
 
+        private void OnSelectDeselectAll(object sender, EventArgs e)
+        {
+            lstResults.ItemChecked -= OnResultItemChecked;
+            try
+            {
+                bool isChecked = chkSelectDeselectAll.Checked;
+                foreach (ListViewItem item in lstResults.Items)
+                    item.Checked = isChecked;
+            }
+            finally
+            {
+                lstResults.ItemChecked += OnResultItemChecked;
+            }
+        }
+
+        private void OnResultItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            chkSelectDeselectAll.CheckedChanged -= OnSelectDeselectAll;
+            try
+            {
+                if (lstResults.CheckedItems.Count == 0)
+                    chkSelectDeselectAll.CheckState = CheckState.Unchecked;
+                else if (lstResults.CheckedItems.Count == lstResults.Items.Count)
+                    chkSelectDeselectAll.CheckState = CheckState.Checked;
+                else
+                    chkSelectDeselectAll.CheckState = CheckState.Indeterminate;
+            }
+            finally
+            {
+                chkSelectDeselectAll.CheckedChanged += OnSelectDeselectAll;
+            }
+        }
+
+        private void OnHelp(object sender, EventArgs e)
+        {
+            ProcessStartInfo psi = new ProcessStartInfo("http://encodingchecker.codeplex.com/documentation");
+            psi.UseShellExecute = true;
+            Process.Start(psi);
+        }
+
+        private void OnAbout(object sender, EventArgs e)
+        {
+            using (AboutForm aboutForm = new AboutForm())
+                aboutForm.ShowDialog(this);
+        }
+
         #region Loading and saving of settings
         private void LoadSettings()
         {
@@ -355,7 +401,7 @@ namespace EncodingChecker
                 foreach (ColumnHeader columnHeader in lstResults.Columns)
                     columnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             }
-            UpdateControlsOnActionDone(e.Cancelled);
+            UpdateControlsOnActionDone();
         }
         #endregion
 
@@ -363,7 +409,11 @@ namespace EncodingChecker
         {
             btnView.Enabled = false;
             btnValidate.Enabled = false;
+
+            lblConvert.Enabled = false;
+            lstConvert.Enabled = false;
             btnConvert.Enabled = false;
+            chkSelectDeselectAll.Enabled = false;
 
             btnCancel.Visible = true;
 
@@ -374,11 +424,18 @@ namespace EncodingChecker
             actionStatus.Text = string.Empty;
         }
 
-        private void UpdateControlsOnActionDone(bool cancelled)
+        private void UpdateControlsOnActionDone()
         {
             btnView.Enabled = true;
             btnValidate.Enabled = true;
-            btnConvert.Enabled = true;
+
+            if (lstResults.Items.Count > 0)
+            {
+                lblConvert.Enabled = true;
+                lstConvert.Enabled = true;
+                btnConvert.Enabled = true;
+                chkSelectDeselectAll.Enabled = true;
+            }
 
             btnCancel.Visible = false;
 
@@ -420,34 +477,6 @@ namespace EncodingChecker
         private void ShowWarning(string message, params object[] args)
         {
             MessageBox.Show(this, string.Format(message, args), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-        }
-
-        private void lstResults_ItemChecked(object sender, ItemCheckedEventArgs e)
-        {
-            if (lstResults.CheckedItems.Count == 0)
-                chkSelectDeselectAll.CheckState = CheckState.Unchecked;
-            else if (lstResults.CheckedItems.Count == lstResults.Items.Count)
-                chkSelectDeselectAll.CheckState = CheckState.Checked;
-            else
-                chkSelectDeselectAll.CheckState = CheckState.Indeterminate;
-        }
-
-        private void chkSelectDeselectAll_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void OnHelp(object sender, EventArgs e)
-        {
-            ProcessStartInfo psi = new ProcessStartInfo("http://encodingchecker.codeplex.com/documentation");
-            psi.UseShellExecute = true;
-            Process.Start(psi);
-        }
-
-        private void OnAbout(object sender, EventArgs e)
-        {
-            using (AboutForm aboutForm = new AboutForm())
-                aboutForm.ShowDialog(this);
         }
     }
 }

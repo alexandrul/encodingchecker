@@ -42,6 +42,7 @@
             this.lstValidCharsets = new System.Windows.Forms.CheckedListBox();
             this.btnValidate = new System.Windows.Forms.Button();
             this.lstResults = new System.Windows.Forms.ListView();
+            this.imgsResults = new System.Windows.Forms.ImageList(this.components);
             this.dlgBrowseDirectories = new System.Windows.Forms.FolderBrowserDialog();
             this.statusBar = new System.Windows.Forms.StatusStrip();
             this.tlnkHelp = new System.Windows.Forms.ToolStripStatusLabel();
@@ -55,7 +56,6 @@
             this.btnConvert = new System.Windows.Forms.Button();
             this.chkSelectDeselectAll = new System.Windows.Forms.CheckBox();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.imgsResults = new System.Windows.Forms.ImageList(this.components);
             lblBaseDirectory = new System.Windows.Forms.Label();
             lblFileMasks = new System.Windows.Forms.Label();
             lblValidCharsets = new System.Windows.Forms.Label();
@@ -141,7 +141,15 @@
             this.lstResults.SmallImageList = this.imgsResults;
             this.lstResults.UseCompatibleStateImageBehavior = false;
             this.lstResults.View = System.Windows.Forms.View.Details;
-            this.lstResults.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.lstResults_ItemChecked);
+            this.lstResults.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.OnResultItemChecked);
+            // 
+            // imgsResults
+            // 
+            this.imgsResults.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imgsResults.ImageStream")));
+            this.imgsResults.TransparentColor = System.Drawing.Color.Transparent;
+            this.imgsResults.Images.SetKeyName(0, "Successful");
+            this.imgsResults.Images.SetKeyName(1, "Failed");
+            this.imgsResults.Images.SetKeyName(2, "Warning");
             // 
             // dlgBrowseDirectories
             // 
@@ -204,8 +212,8 @@
             // lstConvert
             // 
             this.lstConvert.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.lstConvert.FormattingEnabled = true;
             resources.ApplyResources(this.lstConvert, "lstConvert");
+            this.lstConvert.FormattingEnabled = true;
             this.lstConvert.Name = "lstConvert";
             // 
             // btnConvert
@@ -219,7 +227,7 @@
             resources.ApplyResources(this.chkSelectDeselectAll, "chkSelectDeselectAll");
             this.chkSelectDeselectAll.Name = "chkSelectDeselectAll";
             this.chkSelectDeselectAll.UseVisualStyleBackColor = true;
-            this.chkSelectDeselectAll.CheckedChanged += new System.EventHandler(this.chkSelectDeselectAll_CheckedChanged);
+            this.chkSelectDeselectAll.CheckedChanged += new System.EventHandler(this.OnSelectDeselectAll);
             // 
             // btnCancel
             // 
@@ -227,14 +235,6 @@
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.OnCancelAction);
-            // 
-            // imgsResults
-            // 
-            this.imgsResults.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imgsResults.ImageStream")));
-            this.imgsResults.TransparentColor = System.Drawing.Color.Transparent;
-            this.imgsResults.Images.SetKeyName(0, "Successful");
-            this.imgsResults.Images.SetKeyName(1, "Failed");
-            this.imgsResults.Images.SetKeyName(2, "Warning");
             // 
             // MainForm
             // 
