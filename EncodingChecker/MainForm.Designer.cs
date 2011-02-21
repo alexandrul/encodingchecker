@@ -221,6 +221,7 @@
             resources.ApplyResources(this.btnConvert, "btnConvert");
             this.btnConvert.Name = "btnConvert";
             this.btnConvert.UseVisualStyleBackColor = true;
+            this.btnConvert.Click += new System.EventHandler(this.OnConvert);
             // 
             // chkSelectDeselectAll
             // 

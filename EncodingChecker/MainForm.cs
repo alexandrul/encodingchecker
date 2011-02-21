@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Deployment.Application;
@@ -56,9 +55,10 @@ namespace EncodingChecker
             _actionWorker.RunWorkerCompleted += ActionWorkerCompleted;
         }
 
+        #region Form events
         private void OnFormLoad(object sender, EventArgs e)
         {
-            IEnumerable<string> validCharsets = GetValidCharsets();
+            IEnumerable<string> validCharsets = GetSupportedCharsets();
             foreach (string validCharset in validCharsets)
             {
                 lstValidCharsets.Items.Add(validCharset);
@@ -140,82 +140,6 @@ namespace EncodingChecker
             using (AboutForm aboutForm = new AboutForm())
                 aboutForm.ShowDialog(this);
         }
-
-        #region Loading and saving of settings
-        private void LoadSettings()
-        {
-            string settingsFileName = GetSettingsFileName();
-            if (!File.Exists(settingsFileName))
-                return;
-            using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
-                object settingsInstance = formatter.Deserialize(settingsFile);
-                _settings = (Settings)settingsInstance;
-            }
-
-            if (_settings.RecentDirectories != null && _settings.RecentDirectories.Count > 0)
-            {
-                foreach (string recentDirectory in _settings.RecentDirectories)
-                    lstBaseDirectory.Items.Add(recentDirectory);
-                lstBaseDirectory.SelectedIndex = 0;
-            }
-            else
-                lstBaseDirectory.Text = Environment.CurrentDirectory;
-            chkIncludeSubdirectories.Checked = _settings.IncludeSubdirectories;
-            txtFileMasks.Text = _settings.FileMasks;
-            if (_settings.ValidCharsets != null && _settings.ValidCharsets.Length > 0)
-            {
-                for (int i = 0; i < lstValidCharsets.Items.Count; i++)
-                    if (Array.Exists(_settings.ValidCharsets, delegate(string charset) {
-                                                                  return charset.Equals((string)lstValidCharsets.Items[i]);
-                                                              }))
-                        lstValidCharsets.SetItemChecked(i, true);
-            }
-            if (_settings.WindowPosition != null)
-                _settings.WindowPosition.ApplyTo(this);
-        }
-
-        private void SaveSettings()
-        {
-            if (_settings == null)
-                _settings = new Settings();
-            _settings.IncludeSubdirectories = chkIncludeSubdirectories.Checked;
-            _settings.FileMasks = txtFileMasks.Text;
-
-            _settings.ValidCharsets = new string[lstValidCharsets.CheckedItems.Count];
-            for (int i = 0; i < lstValidCharsets.CheckedItems.Count; i++)
-                _settings.ValidCharsets[i] = (string)lstValidCharsets.CheckedItems[i];
-
-            _settings.WindowPosition = new WindowPosition();
-            _settings.WindowPosition.Left = Left;
-            _settings.WindowPosition.Top = Top;
-            _settings.WindowPosition.Width = Width;
-            _settings.WindowPosition.Height = Height;
-
-            string settingsFileName = GetSettingsFileName();
-            using (
-                FileStream settingsFile = new FileStream(settingsFileName, FileMode.Create, FileAccess.Write,
-                    FileShare.None))
-            {
-                BinaryFormatter formatter = new BinaryFormatter();
-                formatter.Serialize(settingsFile, _settings);
-                settingsFile.Flush();
-            }
-        }
-
-        private static string GetSettingsFileName()
-        {
-            string dataDirectory = ApplicationDeployment.IsNetworkDeployed
-                ? ApplicationDeployment.CurrentDeployment.DataDirectory
-                : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            if (string.IsNullOrEmpty(dataDirectory) || !Directory.Exists(dataDirectory))
-                dataDirectory = Environment.CurrentDirectory;
-            dataDirectory = Path.Combine(dataDirectory, "EncodingChecker");
-            if (!Directory.Exists(dataDirectory))
-                Directory.CreateDirectory(dataDirectory);
-            return Path.Combine(dataDirectory, "Settings.bin");
-        }
         #endregion
 
         #region Action button handling
@@ -264,13 +188,45 @@ namespace EncodingChecker
             _actionWorker.RunWorkerAsync(args);
         }
 
-        private void CancelAction()
+        private void OnConvert(object sender, EventArgs e)
         {
-            if (_actionWorker.IsBusy)
+            if (lstResults.CheckedItems.Count == 0)
             {
-                Button actionButton = _currentAction == CurrentAction.View ? btnView : btnValidate;
-                actionButton.Enabled = false;
-                _actionWorker.CancelAsync();
+                ShowWarning("Select one or more files to convert");
+                return;
+            }
+
+            foreach (ListViewItem item in lstResults.CheckedItems)
+            {
+                string charset = item.SubItems[ResultsColumnCharset].Text;
+                if (charset == "(Unknown)")
+                    charset = null;
+                string fileName = item.SubItems[ResultsColumnFileName].Text;
+                string directory = item.SubItems[ResultsColumnDirectory].Text;
+                string filePath = Path.Combine(directory, fileName);
+
+                FileAttributes attributes = File.GetAttributes(filePath);
+                if ((attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                {
+                    attributes = attributes ^ FileAttributes.ReadOnly;
+                    File.SetAttributes(filePath, attributes);
+                }
+
+                string content;
+
+                using (StreamReader reader = charset == null ? new StreamReader(filePath, true) : new StreamReader(filePath, Encoding.GetEncoding(charset)))
+                    content = reader.ReadToEnd();
+
+                string targetCharset = (string)lstConvert.SelectedItem;
+                using (StreamWriter writer = new StreamWriter(filePath, false, Encoding.GetEncoding(targetCharset)))
+                {
+                    writer.Write(content);
+                    writer.Flush();
+                }
+
+                item.Checked = false;
+                item.ImageIndex = 0;
+                item.SubItems[ResultsColumnCharset].Text = targetCharset;
             }
         }
 
@@ -292,7 +248,7 @@ namespace EncodingChecker
             BackgroundWorker worker = (BackgroundWorker)sender;
             WorkerArgs args = (WorkerArgs)e.Argument;
 
-            string[] allFiles = Directory.GetFiles(args.BaseDirectory, "*.xaml",
+            string[] allFiles = Directory.GetFiles(args.BaseDirectory, "*.*",
                 args.IncludeSubdirectories ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
 
             WorkerProgress[] progressBuffer = new WorkerProgress[progressBufferSize];
@@ -386,7 +342,6 @@ namespace EncodingChecker
                 if (progress == null)
                     break;
                 ListViewItem resultItem = new ListViewItem(new string[] { progress.Charset, progress.FileName, progress.DirectoryName }, -1);
-                //resultItem.ImageIndex = 1;
                 lstResults.Items.Add(resultItem);
                 actionStatus.Text = progress.FileName;
             }
@@ -402,6 +357,83 @@ namespace EncodingChecker
                     columnHeader.AutoResize(ColumnHeaderAutoResizeStyle.ColumnContent);
             }
             UpdateControlsOnActionDone();
+        }
+        #endregion
+
+        #region Loading and saving of settings
+        private void LoadSettings()
+        {
+            string settingsFileName = GetSettingsFileName();
+            if (!File.Exists(settingsFileName))
+                return;
+            using (FileStream settingsFile = new FileStream(settingsFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                object settingsInstance = formatter.Deserialize(settingsFile);
+                _settings = (Settings)settingsInstance;
+            }
+
+            if (_settings.RecentDirectories != null && _settings.RecentDirectories.Count > 0)
+            {
+                foreach (string recentDirectory in _settings.RecentDirectories)
+                    lstBaseDirectory.Items.Add(recentDirectory);
+                lstBaseDirectory.SelectedIndex = 0;
+            }
+            else
+                lstBaseDirectory.Text = Environment.CurrentDirectory;
+            chkIncludeSubdirectories.Checked = _settings.IncludeSubdirectories;
+            txtFileMasks.Text = _settings.FileMasks;
+            if (_settings.ValidCharsets != null && _settings.ValidCharsets.Length > 0)
+            {
+                for (int i = 0; i < lstValidCharsets.Items.Count; i++)
+                    if (Array.Exists(_settings.ValidCharsets, delegate(string charset) {
+                                                                  return charset.Equals((string)lstValidCharsets.Items[i]);
+                                                              }))
+                        lstValidCharsets.SetItemChecked(i, true);
+            }
+            if (_settings.WindowPosition != null)
+                _settings.WindowPosition.ApplyTo(this);
+        }
+
+        private void SaveSettings()
+        {
+            if (_settings == null)
+                _settings = new Settings();
+            _settings.IncludeSubdirectories = chkIncludeSubdirectories.Checked;
+            _settings.FileMasks = txtFileMasks.Text;
+
+            _settings.ValidCharsets = new string[lstValidCharsets.CheckedItems.Count];
+            for (int i = 0; i < lstValidCharsets.CheckedItems.Count; i++)
+                _settings.ValidCharsets[i] = (string)lstValidCharsets.CheckedItems[i];
+
+            _settings.WindowPosition = new WindowPosition();
+            _settings.WindowPosition.Left = Left;
+            _settings.WindowPosition.Top = Top;
+            _settings.WindowPosition.Width = Width;
+            _settings.WindowPosition.Height = Height;
+
+            string settingsFileName = GetSettingsFileName();
+            using (
+                FileStream settingsFile = new FileStream(settingsFileName, FileMode.Create, FileAccess.Write,
+                    FileShare.None))
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(settingsFile, _settings);
+                settingsFile.Flush();
+            }
+        }
+
+        private static string GetSettingsFileName()
+        {
+            string dataDirectory = ApplicationDeployment.IsNetworkDeployed
+                ? ApplicationDeployment.CurrentDeployment.DataDirectory
+                : Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (string.IsNullOrEmpty(dataDirectory) || !Directory.Exists(dataDirectory))
+                dataDirectory = Environment.CurrentDirectory;
+            dataDirectory = Path.Combine(dataDirectory, "EncodingChecker");
+            if (!Directory.Exists(dataDirectory))
+                Directory.CreateDirectory(dataDirectory);
+            return Path.Combine(dataDirectory, "Settings.bin");
         }
         #endregion
 
@@ -435,6 +467,20 @@ namespace EncodingChecker
                 lstConvert.Enabled = true;
                 btnConvert.Enabled = true;
                 chkSelectDeselectAll.Enabled = true;
+
+                if (lstValidCharsets.CheckedItems.Count > 0)
+                {
+                    string firstValidCharset = (string)lstValidCharsets.CheckedItems[0];
+                    for (int i = 0; i < lstConvert.Items.Count; i++)
+                    {
+                        string convertCharset = (string)lstConvert.Items[i];
+                        if (firstValidCharset.Equals(convertCharset, StringComparison.OrdinalIgnoreCase))
+                        {
+                            lstConvert.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                }
             }
 
             btnCancel.Visible = false;
@@ -446,37 +492,26 @@ namespace EncodingChecker
             actionStatus.Text = string.Format(statusMessage, lstResults.Items.Count);
         }
 
-        private static IEnumerable<string> GetValidCharsets()
+        private static IEnumerable<string> GetSupportedCharsets()
         {
             //Using reflection, figure out all the charsets that the Ude framework supports by reflecting
             //over all the strings constants in the Ude.Charsets class. These represent all the encodings
             //that can be detected by the program.
             FieldInfo[] charsetConstants = typeof(Charsets).GetFields(BindingFlags.GetField | BindingFlags.Static | BindingFlags.Public);
-            List<string> udeCharsets = new List<string>(charsetConstants.Length);
             foreach (FieldInfo charsetConstant in charsetConstants)
             {
                 if (charsetConstant.FieldType == typeof(string))
-                    udeCharsets.Add((string)charsetConstant.GetValue(null));
+                    yield return (string)charsetConstant.GetValue(null);
             }
-
-            EncodingInfo[] availableEncodings = Encoding.GetEncodings();
-            string[] convertAll = Array.ConvertAll<EncodingInfo, string>(availableEncodings, delegate(EncodingInfo ei) { return ei.Name; });
-
-            List<string> validCharsets = new List<string>(udeCharsets.Count);
-            foreach (string udeCharset in udeCharsets)
-            {
-                string encodingToCheck = udeCharset;
-                bool encodingExists = Array.Exists(availableEncodings,
-                    delegate(EncodingInfo ei) { return ei.Name.Equals(encodingToCheck, StringComparison.OrdinalIgnoreCase); });
-                if (encodingExists)
-                    validCharsets.Add(encodingToCheck);
-            }
-            return validCharsets.ToArray();
         }
 
         private void ShowWarning(string message, params object[] args)
         {
             MessageBox.Show(this, string.Format(message, args), "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
+
+        private const int ResultsColumnCharset = 0;
+        private const int ResultsColumnFileName = 1;
+        private const int ResultsColumnDirectory = 2;
     }
 }
